@@ -131,7 +131,7 @@ class FlashcardOut(FlashcardBase):
 
 class QuizBase(BaseSchema):
     title: str
-    topic_id: int
+    topic_id: Optional[int] = None  # <-- изменено: поле стало необязательным
 
 
 class QuizCreate(QuizBase):
