@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  - job_name: 'dominiq-backend'
+    metrics_path: '/metrics'  # Этот эндпоинт мы создадим в FastAPI
+    static_configs:
+      - targets: ['backend:8000']
+
+  - job_name: 'dominiq-frontend'
+    metrics_path: '/metrics'  # Если фронтенд будет экспортировать метрики (можно через Node.js экспортер)
+    static_configs:
+      - targets: ['frontend:5173']
+
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: '/_prometheus/metrics'  # Elasticsearch имеет встроенный эндпоинт для Prometheus [citation:4]

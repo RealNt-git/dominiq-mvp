@@ -11,6 +11,8 @@ services:
       - ollama_data:/root/.ollama
     command: serve
     restart: unless-stopped
+    networks:
+      - dominiq-net                     # <-- добавлено
 
   backend:
     build: ./backend
@@ -29,6 +31,8 @@ services:
     depends_on:
       - ollama
     restart: unless-stopped
+    networks:
+      - dominiq-net                     # <-- добавлено
 
   frontend:
     build: ./frontend
@@ -43,7 +47,106 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - dominiq-net                     # <-- добавлено
+
+  # === Стек мониторинга ===
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dominiq-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dominiq-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+
+  # === Стек логирования (ELK) ===
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: dominiq-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: dominiq-logstash
+    ports:
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: dominiq-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+
+  # === Exporter для сбора метрик Docker ===
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: dominiq-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+    privileged: true
 
 volumes:
   ollama_data:
   backend_data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+
+networks:
+  dominiq-net:
+    driver: bridge

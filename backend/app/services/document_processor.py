@@ -1,6 +1,7 @@
 # backend/app/services/document_processor.py
 # Модуль обработки документов с подробнейшим логированием
 # Исправлена ошибка бесконечного цикла в _split_into_chunks
+# Исправлен импорт метрик для устранения циклической зависимости
 
 import os
 import re
@@ -15,6 +16,9 @@ from app.services.llm_client import LLMClient
 from app.services.term_extractor import extract_candidates
 from app.database import SessionLocal
 from app import models
+
+# Импорт метрик из отдельного модуля (для предотвращения циклических импортов)
+from app.core.metrics import document_processing_duration_seconds
 
 logger = logging.getLogger(__name__)
 logger.info("document_processor imported successfully")
@@ -149,6 +153,10 @@ async def process_document(file_path: str, domain: str, original_filename: str) 
 
     total_time = time.time() - start_time
     logger.info(f"=== process_document completed in {total_time:.2f}s, returning doc_id {doc_id} ===")
+
+    # Отправляем метрику времени обработки в Prometheus
+    document_processing_duration_seconds.observe(total_time)
+
     return doc_id
 
 
@@ -166,8 +174,8 @@ def _split_into_chunks(text: str, chunk_size: int, overlap: int) -> List[str]:
         start = end - overlap
         if start < 0:
             start = 0
+    logger.info(f"Return {len(chunks)} chunks from _split_into_chunks")
     return chunks
-    logger.info(f"Return {chunks} mto procedure")
 
 
 def _find_context(text: str, term: str) -> Optional[str]:

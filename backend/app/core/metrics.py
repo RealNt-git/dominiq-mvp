@@ -1,0 +1,27 @@
+from prometheus_client import Counter, Histogram, Gauge
+
+# Счётчик загруженных документов
+document_upload_total = Counter(
+    'document_upload_total',
+    'Total number of document uploads'
+)
+
+# Гистограмма времени обработки документа
+document_processing_duration_seconds = Histogram(
+    'document_processing_duration_seconds',
+    'Document processing duration in seconds',
+    buckets=[1, 5, 10, 30, 60, 120, 300]
+)
+
+# Количество активных пользователей (можно обновлять через API)
+active_users = Gauge(
+    'active_users',
+    'Number of active users (with sessions in last 5 min)'
+)
+
+# Гистограмма длительности HTTP-запросов (может использоваться для кастомных роутов)
+http_request_duration_seconds = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request duration in seconds',
+    ['method', 'path', 'status_code']
+)

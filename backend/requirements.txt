@@ -12,3 +12,5 @@ tenacity==8.2.3
 yake==0.4.8
 nltk==3.8.1
 python-multipart==0.0.6
+prometheus-fastapi-instrumentator
+python-logstash

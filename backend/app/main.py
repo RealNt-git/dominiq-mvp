@@ -1,6 +1,7 @@
 # backend/app/main.py
 # Главный файл FastAPI приложения
 # Добавлен глобальный обработчик необработанных исключений
+# Добавлены метрики Prometheus и логирование в Logstash
 
 import logging
 import sys
@@ -14,9 +15,31 @@ from app import models
 from app.api import auth, content, learning, gamification, ai_assistant
 from app.utils.helpers import ensure_default_domains
 
+# Импорты для Prometheus и Logstash
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge
+import logstash
+
+# Импорт кастомных метрик из отдельного модуля (для предотвращения циклических импортов)
+from app.core.metrics import (
+    document_upload_total,
+    document_processing_duration_seconds,
+    active_users,
+    http_request_duration_seconds
+)
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Добавляем отправку логов в Logstash
+try:
+    logstash_handler = logstash.TCPLogstashHandler('logstash', 5000, version=1)
+    # Добавляем к корневому логгеру (чтобы все логи приложения шли в Logstash)
+    logging.getLogger().addHandler(logstash_handler)
+    logger.info("Logstash handler added successfully")
+except Exception as e:
+    logger.error(f"Failed to connect to Logstash: {e}")
 
 # Глобальный обработчик необработанных исключений
 def global_exception_handler(exc_type, exc_value, exc_traceback):
@@ -37,9 +60,24 @@ try:
 finally:
     db.close()
 
+# Создаём приложение FastAPI
 app = FastAPI(title="Dominiq MVP", version="1.0.0")
 
-# Настройка CORS для фронтенда
+# === Инициализация метрик Prometheus ===
+# Инструментатор для автоматического сбора метрик HTTP-запросов
+instrumentator = Instrumentator(
+    should_group_status_codes=True,
+    should_ignore_untemplated=True,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/metrics", "/health"],
+)
+instrumentator.instrument(app).expose(app)
+
+# Кастомные метрики уже импортированы из app.core.metrics, они доступны для использования
+# (например, в document_processor.py можно будет сделать:
+#  from app.core.metrics import document_processing_duration_seconds)
+
+# === Настройка CORS ===
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
