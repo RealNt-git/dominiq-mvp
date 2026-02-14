@@ -1,0 +1,15 @@
+# backend/requirements.txt
+# Зависимости Python для бэкенда
+
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+sqlalchemy==2.0.23
+pydantic==2.5.0
+python-dotenv==1.0.0
+httpx==0.25.1
+tenacity==8.2.3
+keybert==0.8.4
+yake==0.4.8
+nltk==3.8.1
+# для работы с docx (опционально, но в MVP не используется)
+# python-docx==1.1.0

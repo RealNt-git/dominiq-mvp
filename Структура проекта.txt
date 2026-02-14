@@ -1,0 +1,49 @@
+dominiq-mvp/
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   ├── schemas.py
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── content.py
+│   │   │   ├── learning.py
+│   │   │   ├── gamification.py
+│   │   │   ├── ai_assistant.py
+│   │   │   └── ...
+│   │   ├── services/
+│   │   │   ├── llm_client.py
+│   │   │   ├── term_extractor.py
+│   │   │   └── document_processor.py
+│   │   └── utils/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .env
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   │   ├── Login.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── LearnCards.tsx
+│   │   │   ├── QuizzesList.tsx
+│   │   │   ├── QuizPage.tsx
+│   │   │   ├── Achievements.tsx
+│   │   │   └── admin/
+│   │   │       ├── DocumentUpload.tsx
+│   │   │       ├── DraftList.tsx
+│   │   │       └── TermManager.tsx
+│   │   ├── services/
+│   │   │   └── api.ts
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── Dockerfile
+│   └── .env
+└── docker-compose.yml
