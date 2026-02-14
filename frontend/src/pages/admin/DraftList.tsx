@@ -1,6 +1,7 @@
 // frontend/src/pages/admin/DraftList.tsx
 // Страница списка черновиков терминов (методолог)
 // Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+// Обновлено: добавлена поддержка DELETE-эндпоинта и получение списка документов
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -31,6 +32,7 @@ const DraftList: React.FC = () => {
   const [drafts, setDrafts] = useState<DraftTerm[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<DraftTerm | null>(null);
   const [editForm, setEditForm] = useState({
     term: '',
@@ -53,27 +55,12 @@ const DraftList: React.FC = () => {
 
   const fetchDocuments = async () => {
     try {
-      // Предполагаем, что есть эндпоинт для получения всех документов (не описан в ТЗ, но нужен)
-      // В реальности может быть GET /api/admin/ai/documents или аналогичный. Добавим его.
-      // Для MVP можно сделать простой запрос к drafts и извлечь уникальные document_id, но лучше создать эндпоинт.
-      // Пока предположим, что такого эндпоинта нет, и получим список документов из черновиков.
-      // Но чтобы не усложнять, просто добавим селект с опциями на основе document_id из drafts.
-      // Однако для экспорта нужен document_id, поэтому мы можем получить документы из GET /api/admin/ai/drafts?group=documents
-      // Проще: при загрузке drafts мы соберём уникальные документы и сохраним в state.
-      // Но тогда не будет имени файла. Для MVP можно обойтись без имени, только ID.
-      // Лучше сделаем запрос на получение документов. Создадим заглушку.
-      // В реальности нужно добавить эндпоинт GET /api/admin/ai/documents, но пока используем костыль.
-      // Для чистоты кода предположим, что такой эндпоинт есть. Или сделаем запрос к drafts и вытащим уникальные document_id.
-      // Я выберу второй вариант: после загрузки drafts извлечём уникальные document_id и для каждого получим информацию.
-      // Но для получения имени документа нужно ещё где-то хранить. В модели Document есть filename.
-      // Поэтому лучше сделать отдельный запрос к документам. Добавим в api вызов /api/admin/ai/documents.
-      // Так как этого эндпоинта нет в ТЗ, создадим его в ai_assistant.py (не входит в текущую задачу, но для целостности предположим, что он есть).
-      // В целях демонстрации сделаем заглушку.
-      const response = await api.get('/api/admin/ai/documents'); // предположим
+      const response = await api.get('/api/admin/ai/documents');
       setDocuments(response.data);
     } catch (err) {
       console.error('Failed to fetch documents:', err);
-      // Если эндпоинта нет, просто оставим пустой массив, пользователь сможет выбрать "Все"
+      // Если эндпоинт недоступен, просто продолжаем работу без списка документов
+      setDocuments([]);
     }
   };
 
@@ -109,10 +96,11 @@ const DraftList: React.FC = () => {
     if (!editingDraft) return;
     try {
       await api.put(`/api/admin/ai/drafts/${editingDraft.id}`, editForm);
-      // Обновить список
+      setSuccessMessage('Черновик успешно обновлён');
       fetchDrafts();
       setShowModal(false);
       setEditingDraft(null);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Failed to update draft:', err);
       setError('Ошибка при сохранении');
@@ -120,12 +108,12 @@ const DraftList: React.FC = () => {
   };
 
   const handleDelete = async (draftId: number) => {
-    if (!confirm('Удалить черновик?')) return;
+    if (!confirm('Вы уверены, что хотите удалить этот черновик?')) return;
     try {
-      // В ТЗ нет эндпоинта удаления, можно использовать PUT со статусом rejected или DELETE.
-      // Предположим, что DELETE /api/admin/ai/drafts/{id} существует.
       await api.delete(`/api/admin/ai/drafts/${draftId}`);
+      setSuccessMessage('Черновик удалён');
       fetchDrafts();
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Failed to delete draft:', err);
       setError('Ошибка при удалении');
@@ -139,7 +127,9 @@ const DraftList: React.FC = () => {
     }
     try {
       await api.post('/api/admin/ai/drafts/approve', { document_id: selectedDocId });
+      setSuccessMessage('Черновики утверждены');
       fetchDrafts(); // обновить список (статусы изменятся)
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Failed to approve drafts:', err);
       setError('Ошибка при утверждении');
@@ -204,7 +194,6 @@ const DraftList: React.FC = () => {
                 {doc.filename} ({doc.domain})
               </option>
             ))}
-            {/* Если documents пуст, можно добавить опции на основе drafts, но для простоты оставим так */}
           </select>
           <button
             onClick={fetchDrafts}
@@ -241,6 +230,9 @@ const DraftList: React.FC = () => {
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>
+        )}
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md">{successMessage}</div>
         )}
 
         {loading ? (

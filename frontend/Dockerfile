@@ -1,6 +1,4 @@
 # frontend/Dockerfile
-# Dockerfile для фронтенда Vite
-
 FROM node:18-alpine as build
 
 WORKDIR /app

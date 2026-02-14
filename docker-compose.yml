@@ -1,22 +1,17 @@
 # docker-compose.yml
-# Docker Compose для локального запуска MVP приложения Dominiq
-# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
-
 version: '3.8'
 
 services:
-  # Сервис для локальной LLM (Ollama)
   ollama:
     image: ollama/ollama:latest
     container_name: dominiq-ollama
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama   # сохранение загруженных моделей
+      - ollama_data:/root/.ollama
     command: serve
     restart: unless-stopped
 
-  # Бэкенд FastAPI
   backend:
     build: ./backend
     container_name: dominiq-backend
@@ -24,28 +19,27 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=sqlite:///./dominiq.db
-      - OLLAMA_BASE_URL=http://ollama:11434   # обращение к сервису ollama по имени
+      - OLLAMA_BASE_URL=http://ollama:11434
       - LLM_MODEL=phi3:mini
       - MAX_TOKENS=2048
       - TEMPERATURE=0.3
     volumes:
-      - ./backend:/app                     # монтирование кода для разработки (hot-reload)
-      - backend_data:/app/instance          # для хранения SQLite файла вне контейнера
+      - ./backend:/app
+      - backend_data:/app/instance
     depends_on:
       - ollama
     restart: unless-stopped
 
-  # Фронтенд React + Vite
   frontend:
     build: ./frontend
     container_name: dominiq-frontend
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000  # адрес бэкенда для браузера
+      - VITE_API_URL=http://localhost:8000
     volumes:
       - ./frontend:/app
-      - /app/node_modules                    # избегаем перезаписи node_modules из контейнера
+      - /app/node_modules
     depends_on:
       - backend
     restart: unless-stopped

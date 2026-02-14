@@ -1,6 +1,4 @@
 # backend/Dockerfile
-# Dockerfile для бэкенда FastAPI
-
 FROM python:3.11-slim
 
 WORKDIR /app

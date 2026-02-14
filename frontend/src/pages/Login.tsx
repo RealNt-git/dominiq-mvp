@@ -28,7 +28,8 @@ const Login: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await api.post('/api/auth/login', { email });
+      // Не сохраняем response, так как он не используется
+      await api.post('/api/auth/login', { email });
       // Сохраняем email в localStorage
       localStorage.setItem('userEmail', email);
       // Перенаправляем на дашборд

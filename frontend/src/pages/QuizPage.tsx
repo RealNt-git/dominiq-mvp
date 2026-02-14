@@ -3,7 +3,7 @@
 // Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 
 interface QuestionForUser {
@@ -22,7 +22,6 @@ interface QuizResult {
 
 const QuizPage: React.FC = () => {
   const { quizId } = useParams<{ quizId: string }>();
-  const navigate = useNavigate();
 
   const [questions, setQuestions] = useState<QuestionForUser[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);

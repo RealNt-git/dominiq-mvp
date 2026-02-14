@@ -189,6 +189,7 @@ class DraftTerm(Base):
     definition = Column(Text, nullable=True)
     example = Column(Text, nullable=True)
     context = Column(Text, nullable=True)             # контекст из документа
+    mnemonic = Column(Text, nullable=True)
     status = Column(String, default="new")            # new, edited, approved, rejected
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())

@@ -4,10 +4,12 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
-from app.database import engine, init_db
+from app.database import engine, init_db, SessionLocal
 from app import models
 from app.api import auth, content, learning, gamification, ai_assistant
+from app.utils.helpers import ensure_default_domains
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +17,13 @@ logger = logging.getLogger(__name__)
 
 # Создание таблиц БД при запуске
 init_db()
+
+# Создание стандартных доменов
+db = SessionLocal()
+try:
+    ensure_default_domains(db)
+finally:
+    db.close()
 
 app = FastAPI(title="Dominiq MVP", version="1.0.0")
 

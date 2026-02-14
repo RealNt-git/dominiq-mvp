@@ -11,7 +11,7 @@ from app.database import get_db
 from app.api.auth import get_current_user
 from app import models, schemas
 
-router = APIRouter(prefix="/learn", tags=["Learning"])
+router = APIRouter(tags=["Learning"])
 
 # ---------- Вспомогательные функции ----------
 def calculate_next_review(known: bool, repetitions: int, ease_factor: float, interval: int) -> (int, float, int):

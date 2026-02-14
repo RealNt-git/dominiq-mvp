@@ -1,6 +1,7 @@
 # backend/app/schemas.py
 # Pydantic схемы для MVP приложения Dominiq
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+# Исправлено: regex -> pattern в QuestionBase
 
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
@@ -75,8 +76,6 @@ class TopicUpdate(TopicBase):
 
 class TopicOut(TopicBase):
     id: int
-    # Можно добавить дочерние темы при необходимости
-    # children: List['TopicOut'] = []
 
 
 # ---------- Term ----------
@@ -153,7 +152,7 @@ class QuizOut(QuizBase):
 class QuestionBase(BaseSchema):
     quiz_id: int
     text: str
-    type: str = Field(..., regex="^(single|multiple|matching|open)$")
+    type: str = Field(..., pattern="^(single|multiple|matching|open)$")  # Исправлено: regex -> pattern
     options: Optional[List[str]] = None
     correct_answer: Union[int, List[int], str, Dict]  # зависит от типа
     explanation: Optional[str] = None
@@ -287,6 +286,7 @@ class DraftTermOut(DraftTermBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+    mnemonic: Optional[str] = None
 
 
 # ---------- DraftQuiz ----------

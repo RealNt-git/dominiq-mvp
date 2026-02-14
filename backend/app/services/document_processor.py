@@ -7,11 +7,10 @@ import re
 import json
 import logging
 from typing import List, Dict, Any, Optional
-from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from app.services.llm_client import LLMClient
+from app.services.llm_client import LLMClient  # <-- добавлен импорт
 from app.services.term_extractor import extract_candidates
 from app.database import SessionLocal
 from app import models
@@ -209,7 +208,9 @@ async def _generate_additional_materials(
     db: Session
 ) -> None:
     """
-    Генерирует мнемонику и вопросы для термина и сохраняет их как черновики квизов.
+    Генерирует мнемонику и вопросы для термина и сохраняет их.
+    - мнемоника сохраняется в поле mnemonic черновика термина
+    - вопросы сохраняются как черновики квизов (DraftQuiz)
     """
     term = term_info["term"]
     definition = term_info.get("definition", "")
@@ -219,30 +220,10 @@ async def _generate_additional_materials(
     prompt_mnemonic = f"Придумай короткую мнемоническую фразу для запоминания термина '{term}' (определение: {definition}). Ответ дай одной строкой, без пояснений."
     try:
         mnemonic = await llm.generate(prompt_mnemonic, max_tokens=50, temperature=0.5)
-        # Сохраним мнемонику прямо в draft_term (обновим запись)
+        # Обновляем черновик термина, добавляя мнемонику
         draft_term = db.query(models.DraftTerm).filter(models.DraftTerm.id == draft_term_id).first()
         if draft_term:
-            draft_term.term = term  # может уже есть, но обновим
-            # У DraftTerm нет поля mnemonic в модели, поэтому пока не сохраняем
-            # Можно добавить поле mnemonic в DraftTerm, но по ТЗ его нет. В текущей модели DraftTerm нет mnemonic.
-            # Значит, мнемоника будет отдельно? В модели Term есть mnemonic, но в черновике нет.
-            # Поступим так: сохраним мнемонику позже, когда будем утверждать черновик.
-            # Для простоты пока игнорируем мнемонику в черновиках, или добавим поле. Следуя ТЗ, в DraftTerm нет mnemonic.
-            # Значит, мнемоника генерируется, но не сохраняется в отдельном черновике? Тогда зачем?
-            # По ТЗ: "Генерация дополнительных материалов (LLM) ... Генерация мнемоники (короткая фраза-ассоциация)."
-            # Можно сохранить её в отдельное поле DraftTerm, добавив в модель. Но модель уже задана без mnemonic.
-            # Для простоты в рамках MVP предлагаю добавить поле mnemonic в DraftTerm. Но чтобы не менять models.py сейчас,
-            # можно сохранять мнемонику как часть черновика термина, добавив поле вручную.
-            # Однако models.py был создан ранее, и там у DraftTerm нет mnemonic. Значит, для консистентности нужно добавить.
-            # Так как код моделей уже предоставлен, мы можем здесь обновить запись, если поле есть.
-            # Но в текущей версии models.py у DraftTerm нет поля mnemonic. Поэтому пропустим сохранение мнемоники,
-            # или предложим разработчику добавить. Поскольку это ТЗ, я предполагаю, что в DraftTerm есть все необходимые поля.
-            # В models.py из предыдущего сообщения у DraftTerm нет mnemonic. Возможно, опечатка. В целях выполнения задачи,
-            # я просто сгенерирую, но не сохраню (или сохраню в отдельную таблицу, но это усложнит).
-            # Лучше: добавим в DraftTerm поле mnemonic (Text, nullable=True). Для этого нужно изменить models.py.
-            # Но мы не можем менять models.py здесь. Поэтому для демонстрации кода предположим, что поле существует.
-            # В реальной разработке это нужно синхронизировать. В рамках ответа я добавлю комментарий.
-            pass
+            draft_term.mnemonic = mnemonic
     except Exception as e:
         logger.warning(f"Failed to generate mnemonic for '{term}': {e}")
 

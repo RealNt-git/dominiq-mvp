@@ -1,0 +1,97 @@
+MIT License
+
+Copyright (c) 2026 [Your Name]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Third-Party Licenses
+
+This project uses the following open-source libraries. Their licenses are acknowledged below.
+
+### Backend (Python)
+- **FastAPI** (MIT License) - https://github.com/tiangolo/fastapi
+- **Uvicorn** (BSD-3-Clause) - https://github.com/encode/uvicorn
+- **SQLAlchemy** (MIT License) - https://github.com/sqlalchemy/sqlalchemy
+- **Pydantic** (MIT License) - https://github.com/pydantic/pydantic
+- **python-dotenv** (BSD-3-Clause) - https://github.com/theskumar/python-dotenv
+- **HTTPX** (MIT License) - https://github.com/encode/httpx
+- **Tenacity** (Apache 2.0) - https://github.com/jd/tenacity
+- **KeyBERT** (MIT License) - https://github.com/MaartenGr/KeyBERT
+- **YAKE** (GPLv3 / MIT? — обычно MIT) - https://github.com/LIAAD/yake
+- **NLTK** (Apache 2.0) - https://github.com/nltk/nltk
+- **python-multipart** (MIT License) - https://github.com/andrew-d/python-multipart
+- **PyTorch** (BSD-3-Clause) - https://github.com/pytorch/pytorch
+- **sentence-transformers** (Apache 2.0) - https://github.com/UKPLab/sentence-transformers
+- **scikit-learn** (BSD-3-Clause) - https://github.com/scikit-learn/scikit-learn
+- **numpy** (BSD-3-Clause) - https://github.com/numpy/numpy
+- **requests** (Apache 2.0) - https://github.com/psf/requests
+- **urllib3** (MIT License) - https://github.com/urllib3/urllib3
+- **idna** (BSD-3-Clause) - https://github.com/kjd/idna
+- **certifi** (MPL 2.0) - https://github.com/certifi/python-certifi
+- **click** (BSD-3-Clause) - https://github.com/pallets/click
+- **h11** (MIT License) - https://github.com/python-hyper/h11
+- **httptools** (MIT License) - https://github.com/MagicStack/httptools
+- **uvloop** (MIT License) - https://github.com/MagicStack/uvloop
+- **watchfiles** (MIT License) - https://github.com/samuelcolvin/watchfiles
+- **websockets** (BSD-3-Clause) - https://github.com/aaugustin/websockets
+- **greenlet** (MIT License) - https://github.com/python-greenlet/greenlet
+- **typing-extensions** (MIT License) - https://github.com/python/typing_extensions
+- **anyio** (MIT License) - https://github.com/agronholm/anyio
+- **sniffio** (MIT License) - https://github.com/python-trio/sniffio
+- **rich** (MIT License) - https://github.com/Textualize/rich
+- **markdown-it-py** (MIT License) - https://github.com/executablebooks/markdown-it-py
+- **pygments** (BSD-2-Clause) - https://github.com/pygments/pygments
+- **joblib** (BSD-3-Clause) - https://github.com/joblib/joblib
+- **threadpoolctl** (BSD-3-Clause) - https://github.com/joblib/threadpoolctl
+- **scipy** (BSD-3-Clause) - https://github.com/scipy/scipy
+- **regex** (Apache 2.0) - https://github.com/mrabarnett/mrab-regex
+- **tqdm** (MIT License) - https://github.com/tqdm/tqdm
+- **filelock** (MIT License) - https://github.com/tox-dev/filelock
+- **fsspec** (BSD-3-Clause) - https://github.com/fsspec/filesystem_spec
+- **packaging** (Apache 2.0) - https://github.com/pypa/packaging
+- **sympy** (BSD-3-Clause) - https://github.com/sympy/sympy
+- **jinja2** (BSD-3-Clause) - https://github.com/pallets/jinja
+- **markupsafe** (BSD-3-Clause) - https://github.com/pallets/markupsafe
+- **networkx** (BSD-3-Clause) - https://github.com/networkx/networkx
+- **jellyfish** (MIT License) - https://github.com/jamesturk/jellyfish
+- **segtok** (MIT License) - https://github.com/fnl/segtok
+- **tabulate** (MIT License) - https://github.com/astanin/python-tabulate
+- **huggingface-hub** (Apache 2.0) - https://github.com/huggingface/huggingface_hub
+- **tokenizers** (Apache 2.0) - https://github.com/huggingface/tokenizers
+- **safetensors** (Apache 2.0) - https://github.com/huggingface/safetensors
+- **transformers** (Apache 2.0) - https://github.com/huggingface/transformers
+- **triton** (MIT License) - https://github.com/openai/triton
+- **nvidia-* packages** (proprietary? but included with PyTorch) — NVIDIA's CUDA libraries are redistributable under terms of their EULA, but they are part of PyTorch distribution. Usually they are allowed for use with PyTorch.
+
+### Frontend (JavaScript/TypeScript)
+- **React** (MIT License) - https://github.com/facebook/react
+- **React DOM** (MIT License) - https://github.com/facebook/react
+- **React Router DOM** (MIT License) - https://github.com/remix-run/react-router
+- **Axios** (MIT License) - https://github.com/axios/axios
+- **TypeScript** (Apache 2.0) - https://github.com/microsoft/TypeScript
+- **Vite** (MIT License) - https://github.com/vitejs/vite
+- **@vitejs/plugin-react** (MIT License) - https://github.com/vitejs/vite-plugin-react
+- **Tailwind CSS** (MIT License) - https://github.com/tailwindlabs/tailwindcss
+- **Autoprefixer** (MIT License) - https://github.com/postcss/autoprefixer
+- **PostCSS** (MIT License) - https://github.com/postcss/postcss
+- **@types/react** and **@types/react-dom** (MIT License) - https://github.com/DefinitelyTyped/DefinitelyTyped
+
+For full license texts, please refer to the respective project repositories.

@@ -1,6 +1,8 @@
 # backend/app/api/ai_assistant.py
 # API для AI-ассистента методолога (загрузка документов, черновики, утверждение)
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+# Добавлен эндпоинт DELETE /drafts/{draft_id} для удаления черновика
+# Добавлено получение domain_id из документа при утверждении
 
 import tempfile
 import shutil
@@ -17,7 +19,22 @@ from app.api.auth import get_current_user
 from app import models, schemas
 from app.services import document_processor
 
-router = APIRouter(prefix="/admin/ai", tags=["AI Assistant"])
+import logging
+logger = logging.getLogger(__name__)
+
+router = APIRouter(tags=["AI Assistant"])
+
+
+@router.get("/documents", response_model=List[schemas.DocumentOut])
+def list_documents(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Возвращает список всех загруженных документов.
+    """
+    documents = db.query(models.Document).order_by(models.Document.uploaded_at.desc()).all()
+    return documents
 
 
 @router.post("/upload-document", response_model=schemas.DocumentUploadResponse)
@@ -46,6 +63,7 @@ async def upload_document(
         return {"document_id": doc_id, "message": "Документ загружен и обработан"}
     except Exception as e:
         # В случае ошибки удаляем временный файл и возвращаем ошибку
+        logger.error(f"Error processing document: {e}", exc_info=True)  # <-- добавить эту строку
         os.unlink(tmp_path)
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
     finally:
@@ -94,6 +112,23 @@ def update_draft(
     return draft
 
 
+@router.delete("/drafts/{draft_id}", status_code=204)
+def delete_draft(
+    draft_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Удаляет черновик термина.
+    """
+    draft = db.query(models.DraftTerm).filter(models.DraftTerm.id == draft_id).first()
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft term not found")
+    db.delete(draft)
+    db.commit()
+    return
+
+
 @router.post("/drafts/approve", status_code=200)
 def approve_drafts(
     request: schemas.DraftApproveRequest,
@@ -116,10 +151,22 @@ def approve_drafts(
     if not drafts:
         raise HTTPException(status_code=404, detail="No drafts found for approval")
 
-    # Получаем документ (для названия квиза)
+    # Получаем документ (для названия квиза и домена)
     doc = None
     if request.document_id:
         doc = db.query(models.Document).filter(models.Document.id == request.document_id).first()
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+    # Находим домен по имени из документа
+    domain = None
+    if doc:
+        domain = db.query(models.Domain).filter(models.Domain.name == doc.domain).first()
+        if not domain:
+            # Если домен не найден (например, пользователь ввел нестандартное имя), создаем его
+            domain = models.Domain(name=doc.domain, description=f"Домен {doc.domain}")
+            db.add(domain)
+            db.flush()
 
     # Создаём Quiz для документа (если ещё не создан)
     quiz = None
@@ -139,9 +186,9 @@ def approve_drafts(
             term=draft.term,
             definition=draft.definition or "",
             example=draft.example,
-            mnemonic=None,  # можно будет добавить потом из DraftQuiz
+            mnemonic=draft.mnemonic,  # сохраняем мнемонику, если есть
             image_url=None,
-            domain_id=None,  # методолог укажет позже, либо можно взять из Document.domain
+            domain_id=domain.id if domain else None,  # обязательно должен быть не NULL
             topic_id=None,
             source_document=doc.filename if doc else None,
             source_fragment=draft.context
@@ -211,7 +258,8 @@ def export_drafts(
             "term": d.term,
             "definition": d.definition,
             "example": d.example,
-            "context": d.context
+            "context": d.context,
+            "mnemonic": d.mnemonic  # добавляем мнемонику, если есть
         })
 
     if format == "json":
@@ -220,7 +268,8 @@ def export_drafts(
         filename = f"drafts_{document_id}.json"
     else:  # csv
         output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=["term", "definition", "example", "context"])
+        # Обновляем поля для CSV
+        writer = csv.DictWriter(output, fieldnames=["term", "definition", "example", "context", "mnemonic"])
         writer.writeheader()
         writer.writerows(data)
         content = output.getvalue()

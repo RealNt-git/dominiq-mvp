@@ -10,7 +10,7 @@ from app.database import get_db
 from app.api.auth import get_current_user
 from app import models, schemas
 
-router = APIRouter(prefix="/user", tags=["Gamification"])
+router = APIRouter(tags=["Gamification"])
 
 
 def calculate_level(total_xp: int) -> int:

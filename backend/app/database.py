@@ -1,21 +1,23 @@
 # backend/app/database.py
-# Модуль настройки подключения к базе данных SQLite
-# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
-
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Чтение URL базы данных из переменной окружения или значение по умолчанию
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dominiq.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/dominiq.db")
 
 # Для SQLite требуется отключать проверку использования в нескольких потоках
 connect_args = {}
-if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
+    # Создаём директорию для базы данных, если её нет
+    db_path = DATABASE_URL.replace("sqlite:///", "")
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
