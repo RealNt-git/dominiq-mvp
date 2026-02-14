@@ -23,3 +23,20 @@ def ensure_default_domains(db: Session):
             db.add(domain)
             logger.info(f"Created default domain: {name}")
     db.commit()
+
+def ensure_default_grades(db: Session):
+    """
+    Проверяет наличие стандартных грейдов и создаёт их при необходимости.
+    """
+    default_grades = [
+        {"name": "Junior", "description": "Начальный уровень"},
+        {"name": "Middle", "description": "Средний уровень"},
+        {"name": "Senior", "description": "Старший уровень"}
+    ]
+    for g in default_grades:
+        grade = db.query(models.Grade).filter(models.Grade.name == g["name"]).first()
+        if not grade:
+            grade = models.Grade(name=g["name"], description=g["description"])
+            db.add(grade)
+            logger.info(f"Created default grade: {g['name']}")
+    db.commit()

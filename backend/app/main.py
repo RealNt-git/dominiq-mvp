@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.database import engine, init_db, SessionLocal
 from app import models
-from app.api import auth, content, learning, gamification, ai_assistant
-from app.utils.helpers import ensure_default_domains
+from app.api import auth, content, learning, gamification, ai_assistant, plan  # добавлен plan
+from app.utils.helpers import ensure_default_domains, ensure_default_grades  # добавлен ensure_default_grades
 
 # Импорты для Prometheus и Logstash
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -53,10 +53,11 @@ sys.excepthook = global_exception_handler
 # Создание таблиц БД при запуске
 init_db()
 
-# Создание стандартных доменов
+# Создание стандартных доменов и грейдов
 db = SessionLocal()
 try:
     ensure_default_domains(db)
+    ensure_default_grades(db)   # вызов новой функции
 finally:
     db.close()
 
@@ -73,10 +74,6 @@ instrumentator = Instrumentator(
 )
 instrumentator.instrument(app).expose(app)
 
-# Кастомные метрики уже импортированы из app.core.metrics, они доступны для использования
-# (например, в document_processor.py можно будет сделать:
-#  from app.core.metrics import document_processing_duration_seconds)
-
 # === Настройка CORS ===
 app.add_middleware(
     CORSMiddleware,
@@ -92,6 +89,7 @@ app.include_router(content.content_router, prefix="/api")
 app.include_router(learning.router, prefix="/api/learn")
 app.include_router(gamification.router, prefix="/api/user")
 app.include_router(ai_assistant.router, prefix="/api/admin/ai")
+app.include_router(plan.router, prefix="/api/plan")  # подключили новый роутер
 
 @app.get("/")
 def root():

@@ -1,10 +1,10 @@
 # backend/app/models.py
 # Модели SQLAlchemy для MVP приложения Dominiq
-# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0 + планы развития
 
 from sqlalchemy import (
     Column, Integer, String, Text, ForeignKey, Float, JSON,
-    Boolean, DateTime, Index
+    Boolean, DateTime, Index, Date
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -24,6 +24,7 @@ class User(Base):
     # Связи
     progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")
     achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
+    topic_plans = relationship("UserTopicPlan", back_populates="user", cascade="all, delete-orphan")  # новая связь
 
 
 class Domain(Base):
@@ -55,6 +56,7 @@ class Topic(Base):
     domain = relationship("Domain", back_populates="topics")
     terms = relationship("Term", back_populates="topic")
     quizzes = relationship("Quiz", back_populates="topic", cascade="all, delete-orphan")
+    user_plans = relationship("UserTopicPlan", back_populates="topic")  # новая связь
 
 
 class Term(Base):
@@ -98,7 +100,7 @@ class Quiz(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
-    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=True)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)  # <-- ИЗМЕНЕНО: было nullable=True
 
     topic = relationship("Topic", back_populates="quizzes")
     questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
@@ -188,7 +190,7 @@ class DraftTerm(Base):
     term = Column(String, nullable=False)
     definition = Column(Text, nullable=True)
     example = Column(Text, nullable=True)
-    context = Column(Text, nullable=True)             # контекст из документа
+    context = Column(Text, nullable=True)
     mnemonic = Column(Text, nullable=True)
     status = Column(String, default="new")            # new, edited, approved, rejected
     created_at = Column(DateTime, server_default=func.now())
@@ -211,3 +213,51 @@ class DraftQuiz(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     document = relationship("Document", back_populates="drafts_quizzes")
+
+
+class ProcessingProgress(Base):
+    __tablename__ = "processing_progress"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, unique=True)
+    total_candidates = Column(Integer, default=0)
+    processed_candidates = Column(Integer, default=0)
+    current_candidate = Column(String, nullable=True)
+    status = Column(String, default="pending")  # pending, processing, completed, failed
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
+    document = relationship("Document", backref="progress")
+
+
+# ---------- Новые модели для планов развития ----------
+
+class Grade(Base):
+    __tablename__ = "grades"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+
+    user_plans = relationship("UserTopicPlan", back_populates="grade", cascade="all, delete-orphan")
+
+
+class UserTopicPlan(Base):
+    __tablename__ = "user_topic_plans"
+    __table_args__ = (
+        Index("ix_user_topic_plan_user_topic", "user_id", "topic_id", unique=True),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
+    grade_id = Column(Integer, ForeignKey("grades.id"), nullable=False)
+    priority = Column(Integer, default=1)  # 1 - наивысший
+    target_date = Column(Date, nullable=True)
+    status = Column(String, default="active")  # active, completed, archived
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
+    user = relationship("User", back_populates="topic_plans")
+    topic = relationship("Topic", back_populates="user_plans")
+    grade = relationship("Grade", back_populates="user_plans")

@@ -1,10 +1,9 @@
 # backend/app/schemas.py
 # Pydantic схемы для MVP приложения Dominiq
-# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
-# Исправлено: regex -> pattern в QuestionBase
+# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0 + планы развития
 
 from typing import Optional, List, Dict, Any, Union
-from datetime import datetime
+from datetime import datetime, date  # добавлен импорт date
 from pydantic import BaseModel, Field, validator
 
 
@@ -128,10 +127,11 @@ class FlashcardOut(FlashcardBase):
 
 
 # ---------- Quiz ----------
+# ИЗМЕНЕНО: topic_id теперь обязательное поле
 
 class QuizBase(BaseSchema):
     title: str
-    topic_id: Optional[int] = None  # <-- изменено: поле стало необязательным
+    topic_id: int  # <-- стало обязательным
 
 
 class QuizCreate(QuizBase):
@@ -140,7 +140,7 @@ class QuizCreate(QuizBase):
 
 class QuizUpdate(QuizBase):
     title: Optional[str] = None
-    topic_id: Optional[int] = None
+    topic_id: Optional[int] = None  # при обновлении может быть не указано
 
 
 class QuizOut(QuizBase):
@@ -152,9 +152,9 @@ class QuizOut(QuizBase):
 class QuestionBase(BaseSchema):
     quiz_id: int
     text: str
-    type: str = Field(..., pattern="^(single|multiple|matching|open)$")  # Исправлено: regex -> pattern
+    type: str = Field(..., pattern="^(single|multiple|matching|open)$")
     options: Optional[List[str]] = None
-    correct_answer: Union[int, List[int], str, Dict]  # зависит от типа
+    correct_answer: Union[int, List[int], str, Dict]
     explanation: Optional[str] = None
 
 
@@ -267,7 +267,7 @@ class DraftTermBase(BaseSchema):
     definition: Optional[str] = None
     example: Optional[str] = None
     context: Optional[str] = None
-    status: str = "new"  # new, edited, approved, rejected
+    status: str = "new"
 
 
 class DraftTermCreate(DraftTermBase):
@@ -341,7 +341,7 @@ class DocumentUploadResponse(BaseSchema):
 
 class DraftApproveRequest(BaseModel):
     document_id: int
-    draft_ids: Optional[List[int]] = None  # если None, утвердить все
+    draft_ids: Optional[List[int]] = None
 
 
 # ---------- Схемы для обучения ----------
@@ -364,12 +364,12 @@ class QuizQuestionForUser(BaseSchema):
     id: int
     text: str
     type: str
-    options: Optional[List[str]] = None  # правильный ответ не передаём
+    options: Optional[List[str]] = None
 
 
 class QuizSubmitRequest(BaseModel):
     quiz_id: int
-    answers: List[Union[int, List[int], str]]  # зависит от типа вопросов
+    answers: List[Union[int, List[int], str]]
 
 
 class QuizResult(BaseSchema):
@@ -392,3 +392,54 @@ class UserProgressSummary(BaseSchema):
 class AchievementWithEarned(AchievementOut):
     earned: bool
     earned_at: Optional[datetime] = None
+
+
+# ---------- НОВЫЕ СХЕМЫ ДЛЯ ПЛАНОВ РАЗВИТИЯ ----------
+
+class GradeBase(BaseSchema):
+    name: str
+    description: Optional[str] = None
+
+
+class GradeCreate(GradeBase):
+    pass
+
+
+class GradeUpdate(GradeBase):
+    name: Optional[str] = None
+
+
+class GradeOut(GradeBase):
+    id: int
+
+
+class UserTopicPlanBase(BaseSchema):
+    user_id: int
+    topic_id: int
+    grade_id: int
+    priority: int = 1
+    target_date: Optional[date] = None
+    status: str = "active"
+
+
+class UserTopicPlanCreate(UserTopicPlanBase):
+    pass
+
+
+class UserTopicPlanUpdate(BaseSchema):
+    user_id: Optional[int] = None
+    topic_id: Optional[int] = None
+    grade_id: Optional[int] = None
+    priority: Optional[int] = None
+    target_date: Optional[date] = None
+    status: Optional[str] = None
+
+
+class UserTopicPlanOut(UserTopicPlanBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    # Вложенные объекты (опционально, для удобства)
+    user: Optional[UserOut] = None
+    topic: Optional[TopicOut] = None
+    grade: Optional[GradeOut] = None
