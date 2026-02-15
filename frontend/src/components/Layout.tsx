@@ -1,5 +1,6 @@
 // frontend/src/components/Layout.tsx
 // Общий макет с навигацией и выходом
+// Добавлен пункт меню "Планы" для методолога
 
 import React from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
@@ -41,6 +42,9 @@ const Layout: React.FC = () => {
                 </Link>
                 <Link to="/admin/terms" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600">
                   Термины
+                </Link>
+                <Link to="/admin/plans" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600">
+                  Планы
                 </Link>
               </div>
             </div>
