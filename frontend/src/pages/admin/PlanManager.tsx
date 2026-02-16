@@ -1,18 +1,23 @@
 // frontend/src/pages/admin/PlanManager.tsx
-// Страница управления планами развития для методолога
+// Страница управления планами развития с фильтрацией тем по домену
 
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 
-// Типы данных
 interface User {
   id: number;
   email: string;
 }
 
+interface Domain {
+  id: number;
+  name: string;
+}
+
 interface Topic {
   id: number;
   name: string;
+  domain_id: number;
 }
 
 interface Grade {
@@ -34,19 +39,19 @@ interface Plan {
 }
 
 const PlanManager: React.FC = () => {
-  // Состояния для справочных данных
   const [users, setUsers] = useState<User[]>([]);
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Состояние выбранного пользователя и его планы
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [plans, setPlans] = useState<Plan[]>([]);
-
-  // Фильтр по статусу
   const [filterStatus, setFilterStatus] = useState<string>('all');
+
+  // Состояния для фильтрации тем по домену в форме создания
+  const [selectedDomainId, setSelectedDomainId] = useState<number | ''>('');
 
   // Состояние формы создания нового плана
   const [newPlan, setNewPlan] = useState({
@@ -57,7 +62,6 @@ const PlanManager: React.FC = () => {
     status: 'active',
   });
 
-  // Состояние модального окна редактирования
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [editForm, setEditForm] = useState({
     topic_id: '',
@@ -73,12 +77,14 @@ const PlanManager: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const [usersRes, topicsRes, gradesRes] = await Promise.all([
+        const [usersRes, domainsRes, topicsRes, gradesRes] = await Promise.all([
           api.get('/api/plan/plans/users'),
+          api.get('/api/domains'),
           api.get('/api/plan/plans/topics'),
           api.get('/api/plan/plans/grades'),
         ]);
         setUsers(usersRes.data);
+        setDomains(domainsRes.data);
         setTopics(topicsRes.data);
         setGrades(gradesRes.data);
       } catch (err) {
@@ -113,6 +119,11 @@ const PlanManager: React.FC = () => {
     fetchPlans();
   }, [selectedUserId]);
 
+  // Фильтрация тем по выбранному домену для формы создания
+  const topicsForDomain = selectedDomainId
+    ? topics.filter(t => t.domain_id === selectedDomainId)
+    : [];
+
   // Обработчики для формы создания
   const handleNewPlanChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -140,7 +151,6 @@ const PlanManager: React.FC = () => {
       // Обновить список планов
       const res = await api.get(`/api/plan/plans/?user_id=${selectedUserId}`);
       setPlans(res.data);
-      // Сбросить форму
       setNewPlan({
         topic_id: '',
         grade_id: '',
@@ -148,6 +158,7 @@ const PlanManager: React.FC = () => {
         target_date: '',
         status: 'active',
       });
+      setSelectedDomainId('');
     } catch (err: any) {
       console.error('Failed to create plan:', err);
       setError(err.response?.data?.detail || 'Ошибка при создании плана');
@@ -156,7 +167,6 @@ const PlanManager: React.FC = () => {
     }
   };
 
-  // Обработчики редактирования
   const openEditModal = (plan: Plan) => {
     setEditingPlan(plan);
     setEditForm({
@@ -186,7 +196,6 @@ const PlanManager: React.FC = () => {
         status: editForm.status,
       };
       await api.put(`/api/plan/plans/${editingPlan.id}`, payload);
-      // Обновить список планов
       const res = await api.get(`/api/plan/plans/?user_id=${selectedUserId}`);
       setPlans(res.data);
       setEditingPlan(null);
@@ -204,7 +213,6 @@ const PlanManager: React.FC = () => {
     setError(null);
     try {
       await api.delete(`/api/plan/plans/${planId}`);
-      // Обновить список планов
       const res = await api.get(`/api/plan/plans/?user_id=${selectedUserId}`);
       setPlans(res.data);
     } catch (err: any) {
@@ -215,11 +223,9 @@ const PlanManager: React.FC = () => {
     }
   };
 
-  // Вспомогательная функция для получения названия по ID
   const getTopicName = (topicId: number) => topics.find(t => t.id === topicId)?.name || `Тема ${topicId}`;
   const getGradeName = (gradeId: number) => grades.find(g => g.id === gradeId)?.name || `Грейд ${gradeId}`;
 
-  // Фильтрация планов по статусу
   const filteredPlans = plans.filter(plan => {
     if (filterStatus === 'all') return true;
     return plan.status === filterStatus;
@@ -230,11 +236,8 @@ const PlanManager: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Управление планами развития</h1>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>
-        )}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>}
 
-        {/* Выбор пользователя */}
         <div className="mb-6 bg-white p-4 rounded shadow">
           <label htmlFor="userSelect" className="block text-sm font-medium text-gray-700 mb-2">
             Выберите пользователя:
@@ -242,7 +245,7 @@ const PlanManager: React.FC = () => {
           <select
             id="userSelect"
             value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : '' )}
+            onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : '')}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
             <option value="">-- Выберите пользователя --</option>
@@ -252,11 +255,27 @@ const PlanManager: React.FC = () => {
           </select>
         </div>
 
-        {/* Форма создания нового плана */}
         {selectedUserId && (
           <div className="mb-6 bg-white p-4 rounded shadow">
             <h2 className="text-xl font-semibold mb-4">Назначить новый план</h2>
             <form onSubmit={handleCreatePlan} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Выбор домена */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Домен</label>
+                <select
+                  name="domain_id"
+                  value={selectedDomainId}
+                  onChange={(e) => setSelectedDomainId(e.target.value ? Number(e.target.value) : '')}
+                  required
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                >
+                  <option value="">-- Выберите домен --</option>
+                  {domains.map(domain => (
+                    <option key={domain.id} value={domain.id}>{domain.name}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Выбор темы (зависит от домена) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Тема</label>
                 <select
@@ -264,10 +283,11 @@ const PlanManager: React.FC = () => {
                   value={newPlan.topic_id}
                   onChange={handleNewPlanChange}
                   required
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  disabled={!selectedDomainId}
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md disabled:bg-gray-100"
                 >
                   <option value="">-- Выберите тему --</option>
-                  {topics.map(topic => (
+                  {topicsForDomain.map(topic => (
                     <option key={topic.id} value={topic.id}>{topic.name}</option>
                   ))}
                 </select>
@@ -335,12 +355,10 @@ const PlanManager: React.FC = () => {
           </div>
         )}
 
-        {/* Таблица существующих планов */}
         {selectedUserId && (
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Текущие планы пользователя</h3>
-              {/* Фильтр по статусу */}
               <div className="flex items-center space-x-2">
                 <label htmlFor="statusFilter" className="text-sm text-gray-600">Фильтр по статусу:</label>
                 <select

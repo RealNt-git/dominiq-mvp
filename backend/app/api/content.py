@@ -5,10 +5,12 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-
+from sqlalchemy.orm import joinedload
 from app.database import get_db
 from app import models, schemas
 from app.api.auth import get_current_user  # зависимость для получения текущего пользователя (упрощённая)
+
+
 
 # ---------- Роутеры для каждой сущности ----------
 domains_router = APIRouter(prefix="/domains", tags=["Domains"])
@@ -304,17 +306,35 @@ def delete_flashcard(
     return
 
 # ---------- Quizzes ----------
-@quizzes_router.get("/", response_model=List[schemas.QuizOut])
+@quizzes_router.get("/", response_model=List[schemas.QuizWithTopicDetails])
 def list_quizzes(
     topic_id: Optional[int] = Query(None, description="Фильтр по теме"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """Получить список квизов. Можно фильтровать по topic_id."""
-    query = db.query(models.Quiz)
+    """
+    Получить список квизов с названиями темы и домена.
+    Можно фильтровать по topic_id.
+    """
+    query = db.query(models.Quiz).options(
+        joinedload(models.Quiz.topic).joinedload(models.Topic.domain)
+    )
     if topic_id:
         query = query.filter(models.Quiz.topic_id == topic_id)
-    return query.all()
+    quizzes = query.all()
+    result = []
+    for q in quizzes:
+        # Защита от отсутствия темы (по логике БД тема должна быть)
+        topic_name = q.topic.name if q.topic else "Неизвестная тема"
+        domain_name = q.topic.domain.name if q.topic and q.topic.domain else "Неизвестный домен"
+        result.append({
+            "id": q.id,
+            "title": q.title,
+            "topic_id": q.topic_id,
+            "topic_name": topic_name,
+            "domain_name": domain_name
+        })
+    return result
 
 @quizzes_router.post("/", response_model=schemas.QuizOut, status_code=status.HTTP_201_CREATED)
 def create_quiz(

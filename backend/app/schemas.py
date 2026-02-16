@@ -1,9 +1,9 @@
 # backend/app/schemas.py
 # Pydantic схемы для MVP приложения Dominiq
-# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0 + планы развития
+# Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0 + планы развития + прогресс
 
 from typing import Optional, List, Dict, Any, Union
-from datetime import datetime, date  # добавлен импорт date
+from datetime import datetime, date
 from pydantic import BaseModel, Field, validator
 
 
@@ -127,11 +127,11 @@ class FlashcardOut(FlashcardBase):
 
 
 # ---------- Quiz ----------
-# ИЗМЕНЕНО: topic_id теперь обязательное поле
+# topic_id теперь обязательное поле
 
 class QuizBase(BaseSchema):
     title: str
-    topic_id: int  # <-- стало обязательным
+    topic_id: int
 
 
 class QuizCreate(QuizBase):
@@ -140,7 +140,7 @@ class QuizCreate(QuizBase):
 
 class QuizUpdate(QuizBase):
     title: Optional[str] = None
-    topic_id: Optional[int] = None  # при обновлении может быть не указано
+    topic_id: Optional[int] = None
 
 
 class QuizOut(QuizBase):
@@ -331,6 +331,10 @@ class TermWithFlashcard(TermOut):
 class QuizWithQuestions(QuizOut):
     questions: List[QuestionOut] = []
 
+class QuizWithTopicDetails(QuizOut):
+    topic_name: str
+    domain_name: str
+
 
 # ---------- Схемы для запросов AI-ассистента ----------
 
@@ -394,7 +398,7 @@ class AchievementWithEarned(AchievementOut):
     earned_at: Optional[datetime] = None
 
 
-# ---------- НОВЫЕ СХЕМЫ ДЛЯ ПЛАНОВ РАЗВИТИЯ ----------
+# ---------- СХЕМЫ ДЛЯ ПЛАНОВ РАЗВИТИЯ ----------
 
 class GradeBase(BaseSchema):
     name: str
@@ -439,7 +443,24 @@ class UserTopicPlanOut(UserTopicPlanBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-    # Вложенные объекты (опционально, для удобства)
     user: Optional[UserOut] = None
     topic: Optional[TopicOut] = None
     grade: Optional[GradeOut] = None
+
+
+# ---------- СХЕМА ДЛЯ ПЛАНА С ПРОГРЕССОМ (ЛИЧНЫЙ КАБИНЕТ) ----------
+
+class UserTopicPlanWithProgress(UserTopicPlanOut):
+    """
+    Расширенная схема для отображения плана пользователя с прогрессом изучения.
+    Добавляет поля total_terms (всего терминов в теме) и studied_terms (сколько изучено).
+    """
+    total_terms: int
+    studied_terms: int
+
+    @property
+    def percent_complete(self) -> float:
+        """Процент завершения (вычисляемое поле)"""
+        if self.total_terms == 0:
+            return 0.0
+        return round((self.studied_terms / self.total_terms) * 100, 1)

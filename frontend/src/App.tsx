@@ -15,6 +15,7 @@ import DocumentUpload from './pages/admin/DocumentUpload';
 import DraftList from './pages/admin/DraftList';
 import TermManager from './pages/admin/TermManager';
 import PlanManager from './pages/admin/PlanManager'; // новый компонент для управления планами
+import MyPlan from './pages/MyPlan';
 
 // Компонент защищённого маршрута
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -44,6 +45,7 @@ function App() {
           <Route path="quizzes" element={<QuizzesList />} />
           <Route path="quiz/:quizId" element={<QuizPage />} />
           <Route path="achievements" element={<Achievements />} />
+          <Route path="my-plan" element={<MyPlan />} />
           {/* Админские маршруты */}
           <Route path="admin/upload" element={<DocumentUpload />} />
           <Route path="admin/drafts" element={<DraftList />} />

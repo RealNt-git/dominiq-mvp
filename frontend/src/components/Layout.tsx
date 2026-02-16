@@ -30,6 +30,9 @@ const Layout: React.FC = () => {
                 <Link to="/quizzes" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600">
                   Квизы
                 </Link>
+                <Link to="/my-plan" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600">
+                  Мой план
+                </Link>
                 <Link to="/achievements" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600">
                   Достижения
                 </Link>

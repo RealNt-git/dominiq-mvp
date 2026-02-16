@@ -1,11 +1,12 @@
 # backend/app/api/plan.py
 # Эндпоинты для управления планами развития пользователей
-# Добавлено подробное логирование
+# Добавлено подробное логирование, прогресс изучения и вложенные объекты
 
 import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 
 from app.database import get_db
 from app.api.auth import get_current_user
@@ -79,7 +80,6 @@ def create_plan(
     """Создать новый план для пользователя"""
     logger.info(f"User {current_user.email} creating new plan for user_id={plan.user_id}, topic_id={plan.topic_id}")
 
-    # Проверим, что пользователь, тема и грейд существуют
     user = db.query(models.User).filter(models.User.id == plan.user_id).first()
     if not user:
         logger.warning(f"User {plan.user_id} not found")
@@ -93,7 +93,6 @@ def create_plan(
         logger.warning(f"Grade {plan.grade_id} not found")
         raise HTTPException(404, "Grade not found")
 
-    # Проверим, что такой план ещё не существует
     existing = db.query(models.UserTopicPlan).filter(
         models.UserTopicPlan.user_id == plan.user_id,
         models.UserTopicPlan.topic_id == plan.topic_id
@@ -152,16 +151,69 @@ def delete_plan(
 
 # --- Пользовательские эндпоинты ---
 
-@router.get("/my", response_model=List[schemas.UserTopicPlanOut])
+@router.get("/my", response_model=List[schemas.UserTopicPlanWithProgress])
 def get_my_plans(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """Возвращает план развития текущего пользователя"""
-    logger.info(f"User {current_user.email} requesting their own plans")
-    plans = db.query(models.UserTopicPlan).filter(
+    """
+    Возвращает план развития текущего пользователя с прогрессом изучения и вложенными объектами.
+    Для каждого плана вычисляется:
+    - total_terms: общее количество терминов в теме
+    - studied_terms: сколько терминов из этой темы пользователь уже изучал
+    - также загружаются связанные объекты: topic, grade (user может быть не нужен)
+    """
+    logger.info(f"User {current_user.email} requesting their own plans with progress and nested objects")
+
+    # Получаем активные планы пользователя с подгрузкой связанных объектов (topic, grade)
+    plans = db.query(models.UserTopicPlan).options(
+        joinedload(models.UserTopicPlan.topic),
+        joinedload(models.UserTopicPlan.grade)
+    ).filter(
         models.UserTopicPlan.user_id == current_user.id,
         models.UserTopicPlan.status == "active"
     ).order_by(models.UserTopicPlan.priority).all()
-    logger.info(f"Returning {len(plans)} active plans for user")
-    return plans
+
+    logger.debug(f"Found {len(plans)} active plans for user {current_user.id}")
+
+    result = []
+    for plan in plans:
+        logger.debug(f"Processing plan id={plan.id}, topic_id={plan.topic_id}, grade_id={plan.grade_id}")
+
+        # Общее количество терминов в теме
+        total_terms = db.query(models.Term).filter(
+            models.Term.topic_id == plan.topic_id
+        ).count()
+        logger.debug(f"Topic {plan.topic_id} has {total_terms} terms")
+
+        # Количество терминов из этой темы, по которым есть прогресс у пользователя
+        studied_terms = db.query(models.UserProgress).join(
+            models.Term, models.UserProgress.term_id == models.Term.id
+        ).filter(
+            models.Term.topic_id == plan.topic_id,
+            models.UserProgress.user_id == current_user.id
+        ).count()
+        logger.debug(f"User studied {studied_terms} terms for topic {plan.topic_id}")
+
+        # Формируем словарь с данными плана
+        plan_data = {
+            "id": plan.id,
+            "user_id": plan.user_id,
+            "topic_id": plan.topic_id,
+            "grade_id": plan.grade_id,
+            "priority": plan.priority,
+            "target_date": plan.target_date,
+            "status": plan.status,
+            "created_at": plan.created_at,
+            "updated_at": plan.updated_at,
+            "total_terms": total_terms,
+            "studied_terms": studied_terms,
+            # Вложенные объекты
+            "topic": plan.topic,
+            "grade": plan.grade,
+            # "user" не включаем, так как это текущий пользователь
+        }
+        result.append(plan_data)
+
+    logger.info(f"Returning {len(result)} plans with progress for user {current_user.id}")
+    return result
