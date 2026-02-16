@@ -1,0 +1,2 @@
+cd C:\Dominiq\dominiq-mvp
+docker compose up -d --build
