@@ -15,6 +15,10 @@ from app import models
 from app.api import auth, content, learning, gamification, ai_assistant, plan  # добавлен plan
 from app.utils.helpers import ensure_default_domains, ensure_default_grades  # добавлен ensure_default_grades
 
+# тесты
+from app.api import test_runner
+
+
 # Импорты для Prometheus и Logstash
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram, Gauge
@@ -90,6 +94,7 @@ app.include_router(learning.router, prefix="/api/learn")
 app.include_router(gamification.router, prefix="/api/user")
 app.include_router(ai_assistant.router, prefix="/api/admin/ai")
 app.include_router(plan.router, prefix="/api/plan")  # подключили новый роутер
+app.include_router(test_runner.router, prefix="/api")
 
 @app.get("/")
 def root():

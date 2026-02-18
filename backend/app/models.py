@@ -2,6 +2,7 @@
 # Модели SQLAlchemy для MVP приложения Dominiq
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0 + планы развития
 
+print(">>> models.py is being imported")
 from sqlalchemy import (
     Column, Integer, String, Text, ForeignKey, Float, JSON,
     Boolean, DateTime, Index, Date
@@ -111,6 +112,7 @@ class Question(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
+    term_id = Column(Integer, ForeignKey("terms.id"), nullable=False)  # <-- новое поле
     text = Column(Text, nullable=False)
     type = Column(String, nullable=False)       # "single", "multiple", "matching", "open"
     options = Column(JSON, nullable=True)       # варианты ответов (список строк)
@@ -261,3 +263,20 @@ class UserTopicPlan(Base):
     user = relationship("User", back_populates="topic_plans")
     topic = relationship("Topic", back_populates="user_plans")
     grade = relationship("Grade", back_populates="user_plans")
+
+
+class TestRun(Base):
+    __tablename__ = "test_runs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_id = Column(String, unique=True, nullable=False)  # UUID запуска
+    status = Column(String, nullable=False)  # success, failed, running, error
+    total_tests = Column(Integer, default=0)
+    passed = Column(Integer, default=0)
+    failed = Column(Integer, default=0)
+    skipped = Column(Integer, default=0)
+    duration = Column(Float, nullable=True)
+    report_path = Column(String, nullable=True)  # путь к HTML-отчёту
+    created_at = Column(DateTime, server_default=func.now())
+    completed_at = Column(DateTime, nullable=True)
+    details = Column(JSON, nullable=True)  # детали по каждому тесту

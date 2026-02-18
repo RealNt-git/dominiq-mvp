@@ -1,6 +1,7 @@
 # backend/app/api/ai_assistant.py
 # API для AI-ассистента методолога
 # Добавлено подробное логирование всех эндпоинтов
+# Добавлены эндпоинты для работы с черновиками вопросов и получения терминов с вопросами
 
 import tempfile
 import shutil
@@ -86,6 +87,43 @@ def list_drafts(
     return drafts
 
 
+@router.get("/drafts/with-questions", response_model=List[schemas.DraftTermWithQuestions])
+def list_drafts_with_questions(
+    document_id: Optional[int] = Query(None, description="Фильтр по документу"),
+    status: Optional[str] = Query(None, description="Фильтр по статусу (для терминов)"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Возвращает список черновиков терминов, каждый с вложенными черновиками вопросов.
+    """
+    logger.info(f"User {current_user.email} requested drafts with questions: doc_id={document_id}, status={status}")
+    query = db.query(models.DraftTerm)
+    if document_id:
+        query = query.filter(models.DraftTerm.document_id == document_id)
+    if status:
+        query = query.filter(models.DraftTerm.status == status)
+    terms = query.all()
+    result = []
+    for term in terms:
+        # Получаем вопросы для этого термина
+        questions = db.query(models.DraftQuiz).filter(
+            models.DraftQuiz.document_id == term.document_id,
+            models.DraftQuiz.term_id == term.id
+        ).all()
+        # Преобразуем в схему DraftTermWithQuestions
+        term_data = schemas.DraftTermOut.from_orm(term)
+        questions_data = [schemas.DraftQuizOut.from_orm(q) for q in questions]
+        # Создаём словарь для DraftTermWithQuestions
+        term_with_questions = schemas.DraftTermWithQuestions(
+            **term_data.dict(),
+            questions=questions_data
+        )
+        result.append(term_with_questions)
+    logger.info(f"Returning {len(result)} terms with questions")
+    return result
+
+
 @router.put("/drafts/{draft_id}", response_model=schemas.DraftTermOut)
 def update_draft(
     draft_id: int,
@@ -124,6 +162,67 @@ def delete_draft(
     return
 
 
+# ---------- Эндпоинты для черновиков вопросов ----------
+
+@router.get("/draft-questions", response_model=List[schemas.DraftQuizOut])
+def list_draft_questions(
+    document_id: Optional[int] = Query(None, description="Фильтр по документу"),
+    term_id: Optional[int] = Query(None, description="Фильтр по термину"),
+    status: Optional[str] = Query(None, description="Фильтр по статусу"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    logger.info(f"User {current_user.email} requested draft questions: doc_id={document_id}, term_id={term_id}, status={status}")
+    query = db.query(models.DraftQuiz)
+    if document_id:
+        query = query.filter(models.DraftQuiz.document_id == document_id)
+    if term_id:
+        query = query.filter(models.DraftQuiz.term_id == term_id)
+    if status:
+        query = query.filter(models.DraftQuiz.status == status)
+    questions = query.all()
+    logger.info(f"Returning {len(questions)} draft questions")
+    return questions
+
+
+@router.put("/draft-questions/{question_id}", response_model=schemas.DraftQuizOut)
+def update_draft_question(
+    question_id: int,
+    question_update: schemas.DraftQuizUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    logger.info(f"User {current_user.email} updating draft question {question_id}")
+    question = db.query(models.DraftQuiz).filter(models.DraftQuiz.id == question_id).first()
+    if not question:
+        logger.warning(f"Draft question {question_id} not found")
+        raise HTTPException(status_code=404, detail="Draft question not found")
+    for key, value in question_update.dict(exclude_unset=True).items():
+        setattr(question, key, value)
+    question.status = "edited"
+    db.commit()
+    db.refresh(question)
+    logger.info(f"Draft question {question_id} updated")
+    return question
+
+
+@router.delete("/draft-questions/{question_id}", status_code=204)
+def delete_draft_question(
+    question_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    logger.info(f"User {current_user.email} deleting draft question {question_id}")
+    question = db.query(models.DraftQuiz).filter(models.DraftQuiz.id == question_id).first()
+    if not question:
+        logger.warning(f"Draft question {question_id} not found")
+        raise HTTPException(status_code=404, detail="Draft question not found")
+    db.delete(question)
+    db.commit()
+    logger.info(f"Draft question {question_id} deleted")
+    return
+
+
 @router.post("/drafts/approve", status_code=200)
 def approve_drafts(
     request: schemas.DraftApproveRequest,
@@ -132,7 +231,7 @@ def approve_drafts(
 ):
     logger.info(f"User {current_user.email} approving drafts: doc_id={request.document_id}, draft_ids={request.draft_ids}")
 
-    # Получаем черновики для утверждения
+    # Получаем черновики терминов для утверждения
     query = db.query(models.DraftTerm).filter(models.DraftTerm.status.in_(["new", "edited"]))
     if request.document_id:
         query = query.filter(models.DraftTerm.document_id == request.document_id)
@@ -197,6 +296,7 @@ def approve_drafts(
         )
         db.add(flashcard)
 
+        # Обрабатываем вопросы, связанные с этим черновиком термина
         if quiz:
             draft_questions = db.query(models.DraftQuiz).filter(
                 models.DraftQuiz.document_id == draft.document_id,
@@ -206,6 +306,7 @@ def approve_drafts(
             for dq in draft_questions:
                 question = models.Question(
                     quiz_id=quiz.id,
+                    term_id=term.id,                     
                     text=dq.question,
                     type="single",
                     options=dq.options,

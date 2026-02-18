@@ -1,0 +1,52 @@
+{
+  "dashboard": {
+    "title": "Test Results Dashboard",
+    "panels": [
+      {
+        "type": "stat",
+        "title": "Test Runs (24h)",
+        "targets": [
+          {
+            "expr": "sum(increase(test_runs_total[24h]))",
+            "legendFormat": "Total runs"
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "title": "Success Rate",
+        "targets": [
+          {
+            "expr": "sum(test_runs_total{status='success'}) / sum(test_runs_total)",
+            "legendFormat": "Success rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit"
+          }
+        }
+      },
+      {
+        "type": "bar",
+        "title": "Test Results by Status",
+        "targets": [
+          {
+            "expr": "test_runs_total",
+            "legendFormat": "{{status}}"
+          }
+        ]
+      },
+      {
+        "type": "histogram",
+        "title": "Test Duration",
+        "targets": [
+          {
+            "expr": "test_duration_seconds_bucket",
+            "legendFormat": "{{le}}s"
+          }
+        ]
+      }
+    ]
+  }
+}

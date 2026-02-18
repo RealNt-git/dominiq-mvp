@@ -1,6 +1,6 @@
 // frontend/src/pages/admin/TermManager.tsx
 // Управление утверждёнными терминами (CRUD) для методолога
-// Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+// Отображает список терминов, каждый с вложенными вопросами.
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -17,6 +17,19 @@ interface Topic {
   domain_id: number;
 }
 
+// Интерфейс вопроса (QuestionOut)
+interface Question {
+  id: number;
+  quiz_id: number;
+  term_id: number;
+  text: string;
+  type: string;
+  options: string[] | null;
+  correct_answer: any; // может быть числом, массивом, строкой или объектом
+  explanation: string | null;
+}
+
+// Интерфейс термина с вопросами (TermWithQuestions)
 interface Term {
   id: number;
   term: string;
@@ -28,6 +41,7 @@ interface Term {
   topic_id: number | null;
   source_document: string | null;
   created_at: string;
+  questions?: Question[]; // вложенные вопросы
 }
 
 const TermManager: React.FC = () => {
@@ -92,7 +106,7 @@ const TermManager: React.FC = () => {
       if (filterDomain) params.domain_id = filterDomain;
       if (filterTopic) params.topic_id = filterTopic;
       const response = await api.get('/api/terms', { params });
-      setTerms(response.data);
+      setTerms(response.data); // ожидаем массив TermWithQuestions
     } catch (err) {
       console.error('Failed to fetch terms:', err);
       setError('Не удалось загрузить термины');
@@ -139,7 +153,7 @@ const TermManager: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Вы уверены, что хотите удалить этот термин?')) return;
+    if (!confirm('Вы уверены, что хотите удалить этот термин? Все связанные вопросы также будут удалены.')) return;
     try {
       await api.delete(`/api/terms/${id}`);
       fetchTerms();
@@ -172,11 +186,18 @@ const TermManager: React.FC = () => {
   // Фильтрация тем по выбранному домену для выпадающего списка
   const filteredTopics = topics.filter(t => t.domain_id === formData.domain_id);
 
+  // Вспомогательная функция для форматирования правильного ответа
+  const formatCorrectAnswer = (answer: any): string => {
+    if (answer === null || answer === undefined) return '—';
+    if (typeof answer === 'object') return JSON.stringify(answer);
+    return String(answer);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Управление терминами</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Управление терминами и вопросами</h1>
           <div className="flex gap-2">
             <button
               onClick={handleAdd}
@@ -255,10 +276,11 @@ const TermManager: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  terms.map((term) => {
+                  terms.flatMap((term) => {
                     const domain = domains.find(d => d.id === term.domain_id);
                     const topic = topics.find(t => t.id === term.topic_id);
-                    return (
+                    // Строка термина
+                    const termRow = (
                       <tr key={term.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {term.term}
@@ -288,6 +310,41 @@ const TermManager: React.FC = () => {
                         </td>
                       </tr>
                     );
+
+                    // Строка с вопросами (если они есть)
+                    const questionsRows = term.questions && term.questions.length > 0 ? (
+                      <tr key={`q-${term.id}`} className="bg-gray-50">
+                        <td colSpan={5} className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-700 mb-2">Вопросы по термину:</div>
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-100">
+                              <tr>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Вопрос</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Варианты</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Правильный ответ</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Пояснение</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {term.questions.map((q) => (
+                                <tr key={q.id}>
+                                  <td className="px-4 py-2 text-sm text-gray-900 max-w-xs truncate">{q.text}</td>
+                                  <td className="px-4 py-2 text-sm text-gray-500">
+                                    {q.options ? JSON.stringify(q.options) : '—'}
+                                  </td>
+                                  <td className="px-4 py-2 text-sm text-gray-500">
+                                    {formatCorrectAnswer(q.correct_answer)}
+                                  </td>
+                                  <td className="px-4 py-2 text-sm text-gray-500 max-w-xs truncate">{q.explanation || '—'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    ) : null;
+
+                    return questionsRows ? [termRow, questionsRows] : [termRow];
                   })
                 )}
               </tbody>
@@ -296,7 +353,7 @@ const TermManager: React.FC = () => {
         )}
       </div>
 
-      {/* Модальное окно добавления/редактирования */}
+      {/* Модальное окно добавления/редактирования термина (без изменений) */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
           <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">

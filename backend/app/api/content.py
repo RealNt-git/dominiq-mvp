@@ -1,15 +1,19 @@
 # backend/app/api/content.py
 # Модуль API для управления контентом (термины, темы, квизы)
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+# Исправлен циклический импорт и импорт schemas
+
+from __future__ import annotations
 
 from typing import List, Optional
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
-from app import models, schemas
-from app.api.auth import get_current_user  # зависимость для получения текущего пользователя (упрощённая)
+from app import schemas  # правильный импорт
+from app.api.auth import get_current_user
 
+logger = logging.getLogger(__name__)
 
 
 # ---------- Роутеры для каждой сущности ----------
@@ -21,37 +25,43 @@ quizzes_router = APIRouter(prefix="/quizzes", tags=["Quizzes"])
 questions_router = APIRouter(prefix="/questions", tags=["Questions"])
 
 # ---------- Вспомогательные функции ----------
-def get_domain_or_404(db: Session, domain_id: int) -> models.Domain:
+def get_domain_or_404(db: Session, domain_id: int) -> "models.Domain":
+    from app import models
     domain = db.query(models.Domain).filter(models.Domain.id == domain_id).first()
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     return domain
 
-def get_topic_or_404(db: Session, topic_id: int) -> models.Topic:
+def get_topic_or_404(db: Session, topic_id: int) -> "models.Topic":
+    from app import models
     topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
     return topic
 
-def get_term_or_404(db: Session, term_id: int) -> models.Term:
+def get_term_or_404(db: Session, term_id: int) -> "models.Term":
+    from app import models
     term = db.query(models.Term).filter(models.Term.id == term_id).first()
     if not term:
         raise HTTPException(status_code=404, detail="Term not found")
     return term
 
-def get_flashcard_or_404(db: Session, flashcard_id: int) -> models.Flashcard:
+def get_flashcard_or_404(db: Session, flashcard_id: int) -> "models.Flashcard":
+    from app import models
     flashcard = db.query(models.Flashcard).filter(models.Flashcard.id == flashcard_id).first()
     if not flashcard:
         raise HTTPException(status_code=404, detail="Flashcard not found")
     return flashcard
 
-def get_quiz_or_404(db: Session, quiz_id: int) -> models.Quiz:
+def get_quiz_or_404(db: Session, quiz_id: int) -> "models.Quiz":
+    from app import models
     quiz = db.query(models.Quiz).filter(models.Quiz.id == quiz_id).first()
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")
     return quiz
 
-def get_question_or_404(db: Session, question_id: int) -> models.Question:
+def get_question_or_404(db: Session, question_id: int) -> "models.Question":
+    from app import models
     question = db.query(models.Question).filter(models.Question.id == question_id).first()
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -61,18 +71,20 @@ def get_question_or_404(db: Session, question_id: int) -> models.Question:
 @domains_router.get("/", response_model=List[schemas.DomainOut])
 def list_domains(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)  # защита (в MVP любой пользователь)
+    current_user = Depends(get_current_user)
 ):
     """Получить список всех доменов."""
+    from app import models
     return db.query(models.Domain).all()
 
 @domains_router.post("/", response_model=schemas.DomainOut, status_code=status.HTTP_201_CREATED)
 def create_domain(
     domain: schemas.DomainCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Создать новый домен."""
+    from app import models
     db_domain = models.Domain(**domain.dict())
     db.add(db_domain)
     db.commit()
@@ -84,7 +96,7 @@ def update_domain(
     domain_id: int,
     domain_update: schemas.DomainUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Обновить существующий домен."""
     db_domain = get_domain_or_404(db, domain_id)
@@ -98,7 +110,7 @@ def update_domain(
 def delete_domain(
     domain_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Удалить домен."""
     db_domain = get_domain_or_404(db, domain_id)
@@ -111,9 +123,10 @@ def delete_domain(
 def list_topics(
     domain_id: Optional[int] = Query(None, description="Фильтр по домену"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Получить список тем. Можно фильтровать по domain_id."""
+    from app import models
     query = db.query(models.Topic)
     if domain_id:
         query = query.filter(models.Topic.domain_id == domain_id)
@@ -123,7 +136,7 @@ def list_topics(
 def create_topic(
     topic: schemas.TopicCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Создать новую тему."""
     # Проверка существования домена
@@ -131,6 +144,7 @@ def create_topic(
     # Проверка parent_id, если указан
     if topic.parent_id:
         get_topic_or_404(db, topic.parent_id)
+    from app import models
     db_topic = models.Topic(**topic.dict())
     db.add(db_topic)
     db.commit()
@@ -142,7 +156,7 @@ def update_topic(
     topic_id: int,
     topic_update: schemas.TopicUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Обновить тему."""
     db_topic = get_topic_or_404(db, topic_id)
@@ -162,7 +176,7 @@ def update_topic(
 def delete_topic(
     topic_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Удалить тему."""
     db_topic = get_topic_or_404(db, topic_id)
@@ -171,26 +185,43 @@ def delete_topic(
     return
 
 # ---------- Terms ----------
-@terms_router.get("/", response_model=List[schemas.TermOut])
+@terms_router.get("/", response_model=List[schemas.TermWithQuestions])
 def list_terms(
     domain_id: Optional[int] = Query(None, description="Фильтр по домену"),
     topic_id: Optional[int] = Query(None, description="Фильтр по теме"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
-    """Получить список терминов. Фильтрация по domain_id и/или topic_id."""
+    """Получить список терминов с вложенными вопросами."""
+    logger.info(f"User {current_user.email} requested terms list with filters domain_id={domain_id}, topic_id={topic_id}")
+    from app import models
     query = db.query(models.Term)
     if domain_id:
         query = query.filter(models.Term.domain_id == domain_id)
     if topic_id:
         query = query.filter(models.Term.topic_id == topic_id)
-    return query.all()
+    terms = query.all()
+    logger.info(f"Found {len(terms)} terms")
+
+    result = []
+    for term in terms:
+        questions = db.query(models.Question).filter(models.Question.term_id == term.id).all()
+        term_data = schemas.TermOut.from_orm(term)
+        term_with_questions = schemas.TermWithQuestions(
+            **term_data.dict(),
+            questions=[schemas.QuestionOut.from_orm(q) for q in questions]
+        )
+        result.append(term_with_questions)
+        logger.debug(f"Term '{term.term}' (id={term.id}) has {len(questions)} questions")
+
+    logger.info(f"Returning {len(result)} terms with questions")
+    return result
 
 @terms_router.post("/", response_model=schemas.TermOut, status_code=status.HTTP_201_CREATED)
 def create_term(
     term: schemas.TermCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Создать новый термин."""
     # Проверка домена
@@ -198,6 +229,7 @@ def create_term(
     # Проверка темы, если указана
     if term.topic_id:
         get_topic_or_404(db, term.topic_id)
+    from app import models
     db_term = models.Term(**term.dict())
     db.add(db_term)
     db.commit()
@@ -209,7 +241,7 @@ def update_term(
     term_id: int,
     term_update: schemas.TermUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Обновить термин."""
     db_term = get_term_or_404(db, term_id)
@@ -229,7 +261,7 @@ def update_term(
 def delete_term(
     term_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Удалить термин."""
     db_term = get_term_or_404(db, term_id)
@@ -242,9 +274,10 @@ def delete_term(
 def list_flashcards(
     term_id: Optional[int] = Query(None, description="Фильтр по термину"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Получить список карточек. Можно фильтровать по term_id."""
+    from app import models
     query = db.query(models.Flashcard)
     if term_id:
         query = query.filter(models.Flashcard.term_id == term_id)
@@ -254,12 +287,13 @@ def list_flashcards(
 def create_flashcard(
     flashcard: schemas.FlashcardCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Создать новую карточку для термина."""
     # Проверка существования термина
     get_term_or_404(db, flashcard.term_id)
     # Убедимся, что для этого термина ещё нет карточки (уникальность term_id)
+    from app import models
     existing = db.query(models.Flashcard).filter(models.Flashcard.term_id == flashcard.term_id).first()
     if existing:
         raise HTTPException(status_code=400, detail="Flashcard for this term already exists")
@@ -274,13 +308,14 @@ def update_flashcard(
     flashcard_id: int,
     flashcard_update: schemas.FlashcardUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Обновить карточку."""
     db_flashcard = get_flashcard_or_404(db, flashcard_id)
     if flashcard_update.term_id is not None:
         # Проверяем новый term_id и уникальность
         get_term_or_404(db, flashcard_update.term_id)
+        from app import models
         existing = db.query(models.Flashcard).filter(
             models.Flashcard.term_id == flashcard_update.term_id,
             models.Flashcard.id != flashcard_id
@@ -297,7 +332,7 @@ def update_flashcard(
 def delete_flashcard(
     flashcard_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Удалить карточку."""
     db_flashcard = get_flashcard_or_404(db, flashcard_id)
@@ -310,12 +345,13 @@ def delete_flashcard(
 def list_quizzes(
     topic_id: Optional[int] = Query(None, description="Фильтр по теме"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """
     Получить список квизов с названиями темы и домена.
     Можно фильтровать по topic_id.
     """
+    from app import models
     query = db.query(models.Quiz).options(
         joinedload(models.Quiz.topic).joinedload(models.Topic.domain)
     )
@@ -340,11 +376,12 @@ def list_quizzes(
 def create_quiz(
     quiz: schemas.QuizCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Создать новый квиз."""
     # Проверка темы
     get_topic_or_404(db, quiz.topic_id)
+    from app import models
     db_quiz = models.Quiz(**quiz.dict())
     db.add(db_quiz)
     db.commit()
@@ -356,7 +393,7 @@ def update_quiz(
     quiz_id: int,
     quiz_update: schemas.QuizUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Обновить квиз."""
     db_quiz = get_quiz_or_404(db, quiz_id)
@@ -372,7 +409,7 @@ def update_quiz(
 def delete_quiz(
     quiz_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Удалить квиз (вопросы удалятся каскадно)."""
     db_quiz = get_quiz_or_404(db, quiz_id)
@@ -385,9 +422,10 @@ def delete_quiz(
 def list_questions(
     quiz_id: Optional[int] = Query(None, description="Фильтр по квизу"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Получить список вопросов. Можно фильтровать по quiz_id."""
+    from app import models
     query = db.query(models.Question)
     if quiz_id:
         query = query.filter(models.Question.quiz_id == quiz_id)
@@ -397,11 +435,12 @@ def list_questions(
 def create_question(
     question: schemas.QuestionCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Создать новый вопрос."""
     # Проверка квиза
     get_quiz_or_404(db, question.quiz_id)
+    from app import models
     db_question = models.Question(**question.dict())
     db.add(db_question)
     db.commit()
@@ -413,7 +452,7 @@ def update_question(
     question_id: int,
     question_update: schemas.QuestionUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Обновить вопрос."""
     db_question = get_question_or_404(db, question_id)
@@ -429,7 +468,7 @@ def update_question(
 def delete_question(
     question_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """Удалить вопрос."""
     db_question = get_question_or_404(db, question_id)

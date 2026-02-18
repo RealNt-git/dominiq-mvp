@@ -1,6 +1,7 @@
 # backend/app/schemas.py
 # Pydantic схемы для MVP приложения Dominiq
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0 + планы развития + прогресс
+# Добавлена схема DraftTermWithQuestions для отображения черновика термина с вложенными вопросами
 
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime, date
@@ -168,8 +169,19 @@ class QuestionUpdate(QuestionBase):
     type: Optional[str] = None
 
 
-class QuestionOut(QuestionBase):
+class QuestionOut(BaseSchema):
     id: int
+    quiz_id: int
+    term_id: int  # добавлено
+    text: str
+    type: str
+    options: Optional[List[str]] = None
+    correct_answer: Union[int, List[int], str, Dict]
+    explanation: Optional[str] = None
+
+ # ---------- TermWithQuestions ----------
+class TermWithQuestions(TermOut):
+    questions: List[QuestionOut] = []   
 
 
 # ---------- UserProgress ----------
@@ -318,6 +330,11 @@ class DraftQuizOut(DraftQuizBase):
     created_at: datetime
 
 
+# ---------- DraftTermWithQuestions (для отображения термина с вложенными вопросами) ----------
+class DraftTermWithQuestions(DraftTermOut):
+    questions: List[DraftQuizOut] = []
+
+
 # ---------- Схемы для ответов с вложенными данными ----------
 
 class TopicWithChildren(TopicOut):
@@ -330,6 +347,7 @@ class TermWithFlashcard(TermOut):
 
 class QuizWithQuestions(QuizOut):
     questions: List[QuestionOut] = []
+
 
 class QuizWithTopicDetails(QuizOut):
     topic_name: str

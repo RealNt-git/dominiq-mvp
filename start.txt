@@ -1,2 +1,46 @@
 cd C:\Dominiq\dominiq-mvp
 docker compose up -d --build
+
+docker compose down
+docker compose up -d --build
+
+docker restart dominiq-backend
+docker restart dominiq-frontend
+
+docker logs -f dominiq-backend
+
+
+docker compose down
+docker volume rm dominiq-mvp_backend_data
+docker compose up -d
+
+
+docker exec -it dominiq-backend sh
+apt-get update && apt-get install -y sqlite3
+
+
+-- сброс и перезапуск
+docker compose down -v
+docker compose up -d
+docker exec -it dominiq-ollama ollama pull phi3:mini
+
+--- установка тестов
+cd backend
+pip install -r requirements-dev.txt
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir pytest pytest-cov pytest-asyncio pytest-json-report httpx
+docker compose build backend
+docker compose up -d
+Проверьте эндпоинты:
+
+POST /api/test/run — запуск тестов
+
+GET /api/test/runs — список запусков
+
+GET /api/test/runs/{run_id} — детали конкретного запуска
+
+Просмотр метрик:
+
+Prometheus: http://localhost:9090 (метрики test_runs_total, test_duration_seconds)
+
+Grafana: http://localhost:3000 (импортируйте дашборд)

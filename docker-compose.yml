@@ -10,7 +10,7 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     command: serve
-    restart: unless-stopped
+  ##  restart: unless-stopped
     networks:
       - dominiq-net                     # <-- добавлено
 
