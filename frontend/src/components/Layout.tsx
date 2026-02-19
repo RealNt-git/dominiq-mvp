@@ -96,6 +96,29 @@ const Layout: React.FC = () => {
                       >
                         Планы развития
                       </Link>
+                      {/* Новая ссылка на подбор тем */}
+                      <Link
+                        to="/admin/topics"
+                        onClick={closeMethodistMenu}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
+                      >
+                        Подбор тем
+                      </Link>  
+                      {/* Ссылка на сохранённые сессии */}
+                      <Link
+                        to="/admin/saved-topics"
+                        onClick={closeMethodistMenu}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
+                      >
+                        Сохранённые сессии
+                      </Link>  
+                      <Link
+                        to="/admin/table-viewer"
+                        onClick={closeMethodistMenu}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
+                      >
+                      Просмотр БД
+                      </Link>                 
                       <Link
                         to="admin/reset"
                         onClick={closeMethodistMenu}

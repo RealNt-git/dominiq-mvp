@@ -3,21 +3,13 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 # Чтение URL базы данных из переменной окружения или значение по умолчанию
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/dominiq.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://dominiq:dominiq@localhost:5432/dominiq")
 
-# Для SQLite требуется отключать проверку использования в нескольких потоках
-connect_args = {}
-if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-    # Создаём директорию для базы данных, если её нет
-    db_path = DATABASE_URL.replace("sqlite:///", "")
-    db_dir = os.path.dirname(db_path)
-    if db_dir and not os.path.exists(db_dir):
-        os.makedirs(db_dir, exist_ok=True)
-
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+# Для PostgreSQL не требуется специальных аргументов подключения
+engine = create_engine(DATABASE_URL, poolclass=NullPool)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

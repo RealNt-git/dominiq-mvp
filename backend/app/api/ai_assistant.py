@@ -22,6 +22,9 @@ from app import models, schemas
 from app.services import document_processor
 from app.api.content import get_topic_or_404   # функция проверки темы
 
+from app.services.topic_suggester import suggest_topics, generate_topic_content, describe_topic
+from app.services.document_processor import process_document
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["AI Assistant"])
@@ -330,6 +333,227 @@ def approve_drafts(
     logger.info(f"Approved {len(drafts)} drafts, created terms: {created_terms}, quiz id: {quiz.id if quiz else 'none'}")
     return {"message": f"Approved {len(drafts)} drafts, created quiz id {quiz.id if quiz else 'none'}"}
 
+# ---------- Эндпоинты для подбора тем ----------
+
+@router.post("/topics/suggest", response_model=schemas.TopicSuggestionResponse)
+async def suggest_topics_endpoint(
+    request: schemas.TopicSuggestionRequest,
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Подбирает 3 популярные темы для заданного домена и роли.
+    """
+    logger.info("Topic suggestion requested", extra={
+        "user_email": current_user.email,
+        "domain": request.domain,
+        "role": request.role
+    })
+    try:
+        topics = await suggest_topics(request.domain, request.role)
+        if not topics:
+            raise HTTPException(status_code=500, detail="Не удалось получить темы от AI")
+        return {"topics": topics}
+    except Exception as e:
+        logger.error("Topic suggestion failed", extra={"error": str(e)})
+        raise HTTPException(status_code=500, detail="Ошибка при подборе тем")
+
+
+@router.post("/topics/generate-content", response_model=schemas.TopicContentGenerationResponse)
+async def generate_topics_content(
+    request: schemas.TopicContentGenerationRequest,
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Генерирует статьи для списка тем.
+    """
+    logger.info("Topic content generation requested", extra={
+        "user_email": current_user.email,
+        "domain": request.domain,
+        "topics_count": len(request.topics)
+    })
+    try:
+        items = []
+        for topic_name in request.topics:
+            content = await generate_topic_content(request.domain, topic_name)
+            items.append({"name": topic_name, "content": content})
+        return {"items": items}
+    except Exception as e:
+        logger.error("Topic content generation failed", extra={"error": str(e)})
+        raise HTTPException(status_code=500, detail="Ошибка при генерации контента")
+
+
+@router.post("/topics/approve", status_code=200)
+async def approve_topics(
+    request: schemas.TopicApproveRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Принимает список тем с контентом, создаёт темы (если их нет) и запускает обработку каждой темы
+    как документа для генерации терминов, карточек и квизов.
+    """
+    logger.info("Topic approval requested", extra={
+        "user_email": current_user.email,
+        "domain": request.domain,
+        "topics_count": len(request.topics)
+    })
+
+    # Получаем или создаём домен
+    domain_obj = db.query(models.Domain).filter(models.Domain.name == request.domain).first()
+    if not domain_obj:
+        domain_obj = models.Domain(name=request.domain, description=f"Домен {request.domain}")
+        db.add(domain_obj)
+        db.flush()
+        logger.info(f"Created new domain: {request.domain}")
+
+    # Словарь для хранения созданных/найденных тем
+    topics_map = {}
+
+    # Первый проход: создаём или получаем все темы
+    for item in request.topics:
+        topic = db.query(models.Topic).filter(
+            models.Topic.domain_id == domain_obj.id,
+            models.Topic.name == item.name
+        ).first()
+        if not topic:
+            topic = models.Topic(
+                name=item.name,
+                description=f"Тема, сгенерированная AI для домена {request.domain}",
+                domain_id=domain_obj.id
+            )
+            db.add(topic)
+            db.flush()
+            logger.info(f"Created new topic: {item.name} (id={topic.id})")
+        else:
+            logger.info(f"Topic already exists: {item.name} (id={topic.id})")
+        topics_map[item.name] = topic
+
+    # Фиксируем все темы в БД
+    db.commit()
+
+    created_topic_ids = []
+    for item in request.topics:
+        topic = topics_map[item.name]
+
+        # Сохраняем контент во временный файл и запускаем обработку
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp:
+            tmp.write(item.content)
+            tmp_path = tmp.name
+
+        try:
+            doc_id = await process_document(
+                file_path=tmp_path,
+                domain=request.domain,
+                original_filename=f"{item.name}.txt",
+                topic_id=topic.id
+            )
+            created_topic_ids.append({"topic_id": topic.id, "document_id": doc_id})
+        except Exception as e:
+            logger.error(f"Failed to process topic '{item.name}'", exc_info=True, extra={"error": str(e)})
+            raise HTTPException(status_code=500, detail=f"Ошибка обработки темы {item.name}")
+        finally:
+            os.unlink(tmp_path)
+
+    logger.info(f"Successfully processed {len(created_topic_ids)} topics")
+    return {"message": f"Обработано {len(created_topic_ids)} тем", "details": created_topic_ids}
+
+
+# ---------- Эндпоинты для управления сессиями подбора тем ----------
+
+@router.post("/topics/sessions", response_model=schemas.TopicGenerationSessionOut, status_code=201)
+def create_topic_session(
+    session_data: schemas.TopicGenerationSessionCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Создаёт новую сессию подбора тем."""
+    logger.info("Creating topic generation session", extra={
+        "user_email": current_user.email,
+        "domain": session_data.domain
+    })
+    db_session = models.TopicGenerationSession(
+        user_id=current_user.id,
+        **session_data.dict()
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+    logger.info("Topic session created", extra={"session_id": db_session.id})
+    return db_session
+
+
+@router.get("/topics/sessions", response_model=List[schemas.TopicGenerationSessionOut])
+def list_topic_sessions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Возвращает все сессии текущего пользователя."""
+    logger.info("Listing topic sessions", extra={"user_email": current_user.email})
+    sessions = db.query(models.TopicGenerationSession).filter(
+        models.TopicGenerationSession.user_id == current_user.id
+    ).order_by(models.TopicGenerationSession.updated_at.desc()).all()
+    logger.info(f"Found {len(sessions)} sessions")
+    return sessions
+
+
+@router.get("/topics/sessions/{session_id}", response_model=schemas.TopicGenerationSessionOut)
+def get_topic_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Возвращает сессию по ID."""
+    session = db.query(models.TopicGenerationSession).filter(
+        models.TopicGenerationSession.id == session_id,
+        models.TopicGenerationSession.user_id == current_user.id
+    ).first()
+    if not session:
+        logger.warning(f"Session {session_id} not found")
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@router.put("/topics/sessions/{session_id}", response_model=schemas.TopicGenerationSessionOut)
+def update_topic_session(
+    session_id: int,
+    session_update: schemas.TopicGenerationSessionUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Обновляет сессию."""
+    session = db.query(models.TopicGenerationSession).filter(
+        models.TopicGenerationSession.id == session_id,
+        models.TopicGenerationSession.user_id == current_user.id
+    ).first()
+    if not session:
+        logger.warning(f"Session {session_id} not found")
+        raise HTTPException(status_code=404, detail="Session not found")
+    for key, value in session_update.dict(exclude_unset=True).items():
+        setattr(session, key, value)
+    db.commit()
+    db.refresh(session)
+    logger.info(f"Session {session_id} updated")
+    return session
+
+
+@router.delete("/topics/sessions/{session_id}", status_code=204)
+def delete_topic_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Удаляет сессию."""
+    session = db.query(models.TopicGenerationSession).filter(
+        models.TopicGenerationSession.id == session_id,
+        models.TopicGenerationSession.user_id == current_user.id
+    ).first()
+    if not session:
+        logger.warning(f"Session {session_id} not found")
+        raise HTTPException(status_code=404, detail="Session not found")
+    db.delete(session)
+    db.commit()
+    logger.info(f"Session {session_id} deleted")
+    return
 
 @router.get("/export/{document_id}")
 def export_drafts(
@@ -374,3 +598,23 @@ def export_drafts(
         media_type=media_type,
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@router.post("/topics/describe", response_model=schemas.SuggestedTopic)
+async def describe_topic_endpoint(
+    request: schemas.TopicDescribeRequest,
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Генерирует описание для указанной темы.
+    """
+    logger.info("Topic description requested", extra={
+        "user_email": current_user.email,
+        "domain": request.domain,
+        "topic_name": request.topic_name
+    })
+    try:
+        description = await describe_topic(request.domain, request.topic_name)
+        return {"name": request.topic_name, "description": description}
+    except Exception as e:
+        logger.error("Topic description failed", extra={"error": str(e)})
+        raise HTTPException(status_code=500, detail="Ошибка при генерации описания")

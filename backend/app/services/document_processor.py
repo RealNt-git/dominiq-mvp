@@ -1,5 +1,7 @@
 # backend/app/services/document_processor.py
 # Модуль обработки документов с подробнейшим логированием (включая структурированные логи для Kibana)
+# Исправлено: корректное логирование исключений (exc_info передаётся отдельно, не в extra)
+# Улучшена обработка JSON-ответов от LLM при генерации вопросов
 
 import os
 import re
@@ -78,10 +80,9 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
         })
     except Exception as e:
         db.rollback()
-        logger.error("Failed to save document to DB", extra={
+        logger.error("Failed to save document to DB", exc_info=True, extra={
             "action": "process_document",
-            "error": str(e),
-            "exc_info": True
+            "error": str(e)
         })
         raise
     finally:
@@ -195,11 +196,10 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
             })
         except Exception as e:
             db.rollback()
-            logger.error("Error saving drafts", extra={
+            logger.error("Error saving drafts", exc_info=True, extra={
                 "action": "process_document",
                 "document_id": doc_id,
-                "error": str(e),
-                "exc_info": True
+                "error": str(e)
             })
             raise
         finally:
@@ -219,7 +219,7 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
                 "document_id": doc_id
             })
     except Exception as e:
-        logger.error("Failed to mark document as processed", extra={
+        logger.error("Failed to mark document as processed", exc_info=True, extra={
             "action": "process_document",
             "document_id": doc_id,
             "error": str(e)
@@ -330,12 +330,11 @@ async def _verify_term(llm: LLMClient, candidate: str, context: str, domain: str
             })
             return None
     except Exception as e:
-        logger.error("Error verifying term with LLM", extra={
+        logger.error("Error verifying term with LLM", exc_info=True, extra={
             "action": "_verify_term",
             "document_id": doc_id,
             "candidate": candidate,
-            "error": str(e),
-            "exc_info": True
+            "error": str(e)
         })
         return None
 
@@ -380,7 +379,7 @@ async def _generate_additional_materials(
                 "draft_term_id": draft_term_id
             })
     except Exception as e:
-        logger.error("Failed to generate mnemonic", extra={
+        logger.error("Failed to generate mnemonic", exc_info=True, extra={
             "action": "_generate_additional_materials",
             "document_id": document_id,
             "draft_term_id": draft_term_id,
@@ -403,43 +402,74 @@ async def _generate_additional_materials(
 """
     try:
         response = await llm.generate(prompt_quiz, max_tokens=800, temperature=0.3)
-        start = response.find("[")
-        end = response.rfind("]") + 1
+
+        # Попытка извлечь JSON массив
+        start = response.find('[')
+        end = response.rfind(']') + 1
+        questions = None
+        json_str = None
+
         if start != -1 and end > start:
             json_str = response[start:end]
-            questions = json.loads(json_str)
-            if isinstance(questions, list):
-                question_count = 0
-                for q in questions:
-                    if all(k in q for k in ("question", "options", "correct")):
-                        draft_quiz = models.DraftQuiz(
-                            document_id=document_id,
-                            term_id=draft_term_id,
-                            question=q["question"],
-                            options=q["options"],
-                            correct=q["correct"],
-                            explanation=q.get("explanation", ""),
-                            status="new"
-                        )
-                        db.add(draft_quiz)
-                        question_count += 1
-                logger.info("Quiz questions generated", extra={
-                    "action": "_generate_additional_materials",
-                    "document_id": document_id,
-                    "draft_term_id": draft_term_id,
-                    "term": term,
-                    "questions_count": question_count
-                })
-            else:
-                logger.warning("Quiz response is not a list", extra={
-                    "action": "_generate_additional_materials",
-                    "document_id": document_id,
-                    "draft_term_id": draft_term_id,
+            try:
+                questions = json.loads(json_str)
+            except json.JSONDecodeError:
+                # Если не удалось, возможно внутри есть лишний текст
+                logger.warning("Failed to parse JSON array, trying to find object", extra={
                     "term": term,
                     "response_preview": response[:200]
                 })
+
+        # Если массив не найден или не распарсился, пробуем найти одиночный объект
+        if questions is None:
+            start_obj = response.find('{')
+            end_obj = response.rfind('}') + 1
+            if start_obj != -1 and end_obj > start_obj:
+                json_str = response[start_obj:end_obj]
+                try:
+                    single_q = json.loads(json_str)
+                    if isinstance(single_q, dict) and all(k in single_q for k in ("question", "options", "correct")):
+                        questions = [single_q]
+                        logger.info("Parsed single question object", extra={"term": term})
+                    else:
+                        logger.warning("JSON object is not a valid question", extra={"term": term})
+                except json.JSONDecodeError:
+                    logger.warning("Failed to parse JSON object", extra={"term": term})
+
+        if questions is None:
+            logger.warning("Could not find JSON array or object in quiz response", extra={
+                "action": "_generate_additional_materials",
+                "document_id": document_id,
+                "draft_term_id": draft_term_id,
+                "term": term,
+                "response_preview": response[:200]
+            })
+            return
+
+        if isinstance(questions, list):
+            question_count = 0
+            for q in questions:
+                if all(k in q for k in ("question", "options", "correct")):
+                    draft_quiz = models.DraftQuiz(
+                        document_id=document_id,
+                        term_id=draft_term_id,
+                        question=q["question"],
+                        options=q["options"],
+                        correct=q["correct"],
+                        explanation=q.get("explanation", ""),
+                        status="new"
+                    )
+                    db.add(draft_quiz)
+                    question_count += 1
+            logger.info("Quiz questions generated", extra={
+                "action": "_generate_additional_materials",
+                "document_id": document_id,
+                "draft_term_id": draft_term_id,
+                "term": term,
+                "questions_count": question_count
+            })
         else:
-            logger.warning("Could not find JSON array in quiz response", extra={
+            logger.warning("Quiz response is not a list", extra={
                 "action": "_generate_additional_materials",
                 "document_id": document_id,
                 "draft_term_id": draft_term_id,
@@ -447,7 +477,7 @@ async def _generate_additional_materials(
                 "response_preview": response[:200]
             })
     except Exception as e:
-        logger.error("Failed to generate quiz", extra={
+        logger.error("Failed to generate quiz", exc_info=True, extra={
             "action": "_generate_additional_materials",
             "document_id": document_id,
             "draft_term_id": draft_term_id,

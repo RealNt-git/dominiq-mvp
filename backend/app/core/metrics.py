@@ -25,3 +25,16 @@ http_request_duration_seconds = Histogram(
     'HTTP request duration in seconds',
     ['method', 'path', 'status_code']
 )
+
+llm_requests_total = Counter(
+    'llm_requests_total',
+    'Total number of LLM requests',
+    ['model', 'status']  # status: success, error
+)
+
+llm_request_duration_seconds = Histogram(
+    'llm_request_duration_seconds',
+    'LLM request duration in seconds',
+    ['model'],
+    buckets=[0.1, 0.5, 1, 2, 5, 10, 30, 60, 120]
+)

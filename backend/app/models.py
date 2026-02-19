@@ -266,6 +266,21 @@ class UserTopicPlan(Base):
     topic = relationship("Topic", back_populates="user_plans")
     grade = relationship("Grade", back_populates="user_plans")
 
+class TopicGenerationSession(Base):
+    __tablename__ = "topic_generation_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    domain = Column(String, nullable=False)
+    role = Column(String, default="аналитик")
+    step = Column(String, default="input")  # input, suggestions, content, done
+    suggested_topics = Column(JSON, nullable=True)  # список {name, description}
+    selected_topics = Column(JSON, nullable=True)  # список имён
+    generated_content = Column(JSON, nullable=True)  # список {name, content}
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
+    user = relationship("User", backref="topic_sessions")
 
 class TestRun(Base):
     __tablename__ = "test_runs"

@@ -1,5 +1,5 @@
 # backend/app/services/llm_client.py
-# Клиент Ollama с подробным структурированным логированием
+# Клиент Ollama с подробным структурированным логированием и метриками Prometheus
 
 import os
 import json
@@ -9,13 +9,16 @@ from typing import List, Dict, Any, Optional
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
+# Импорт метрик Prometheus
+from app.core.metrics import llm_requests_total, llm_request_duration_seconds
+
 logger = logging.getLogger(__name__)
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 LLM_MODEL = os.getenv("LLM_MODEL", "phi3:mini")
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2048"))
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1500"))
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.3"))
-REQUEST_TIMEOUT = 240.0
+REQUEST_TIMEOUT = 300.0
 
 class LLMClient:
     def __init__(self, base_url=OLLAMA_BASE_URL, model=LLM_MODEL, max_tokens=MAX_TOKENS, temperature=TEMPERATURE):
@@ -64,6 +67,7 @@ class LLMClient:
             "event": "start"
         })
         start = time.time()
+        status = "success"
         try:
             response = await self._client.post(url, json=payload)
             duration = time.time() - start
@@ -77,6 +81,7 @@ class LLMClient:
             data = response.json()
             return data.get("response", "")
         except Exception as e:
+            status = "error"
             duration = time.time() - start
             logger.error("Ollama request failed", extra={
                 "action": "llm_generate",
@@ -85,6 +90,10 @@ class LLMClient:
                 "exc_info": True
             })
             raise
+        finally:
+            # Обновляем метрики Prometheus
+            llm_request_duration_seconds.labels(model=self.model).observe(duration)
+            llm_requests_total.labels(model=self.model, status=status).inc()
 
     async def extract_terms_with_context(self, text_chunk: str, domain: str) -> List[Dict[str, Any]]:
         logger.info("Extracting terms with context", extra={

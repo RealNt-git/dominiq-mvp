@@ -483,3 +483,77 @@ class UserTopicPlanWithProgress(UserTopicPlanOut):
         if self.total_terms == 0:
             return 0.0
         return round((self.studied_terms / self.total_terms) * 100, 1)
+    
+# ---------- Схемы для подбора тем ----------
+
+class TopicSuggestionRequest(BaseModel):
+    domain: str
+    role: Optional[str] = "аналитик"  # например, "бизнес-аналитик", "системный аналитик"
+
+class SuggestedTopic(BaseModel):
+    name: str
+    description: str  # краткое описание (до 500 символов)
+
+class TopicSuggestionResponse(BaseModel):
+    topics: List[SuggestedTopic]
+
+class TopicContentGenerationRequest(BaseModel):
+    domain: str
+    topics: List[str]  # названия тем
+
+class TopicContentItem(BaseModel):
+    name: str
+    content: str  # сгенерированная статья
+
+class TopicContentGenerationResponse(BaseModel):
+    items: List[TopicContentItem]
+
+class TopicApproveItem(BaseModel):
+    name: str
+    content: str
+
+class TopicApproveRequest(BaseModel):
+    domain: str
+    topics: List[TopicApproveItem]    
+
+# ---------- Схемы для сохранения сессий подбора тем ----------
+
+class TopicGenerationSessionBase(BaseSchema):
+    domain: str
+    role: str
+    step: str
+    suggested_topics: Optional[List[Dict[str, str]]] = None
+    selected_topics: Optional[List[str]] = None
+    generated_content: Optional[List[Dict[str, str]]] = None
+
+class TopicGenerationSessionCreate(TopicGenerationSessionBase):
+    pass
+
+class TopicGenerationSessionUpdate(BaseSchema):
+    step: Optional[str] = None
+    suggested_topics: Optional[List[Dict[str, str]]] = None
+    selected_topics: Optional[List[str]] = None
+    generated_content: Optional[List[Dict[str, str]]] = None
+
+class TopicGenerationSessionOut(TopicGenerationSessionBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None    
+
+# ---------- Схемы для просмотра БД ----------
+
+class TableListResponse(BaseModel):
+    tables: List[str]
+
+class TableDataResponse(BaseModel):
+    table_name: str
+    columns: List[str]
+    total: int
+    data: List[Dict[str, Any]]
+    limit: int
+    offset: int  
+
+class TopicDescribeRequest(BaseModel):
+    domain: str
+    topic_name: str      

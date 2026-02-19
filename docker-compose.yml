@@ -1,7 +1,21 @@
 # docker-compose.yml
-version: '3.8'
-
+# версия убрана, так как она устарела
 services:
+  postgres:
+    image: postgres:15
+    container_name: dominiq-postgres
+    environment:
+      POSTGRES_USER: dominiq
+      POSTGRES_PASSWORD: dominiq
+      POSTGRES_DB: dominiq
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - dominiq-net
+
   ollama:
     image: ollama/ollama:latest
     container_name: dominiq-ollama
@@ -10,9 +24,9 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     command: serve
-  ##  restart: unless-stopped
+    restart: unless-stopped
     networks:
-      - dominiq-net                     # <-- добавлено
+      - dominiq-net
 
   backend:
     build: ./backend
@@ -20,19 +34,19 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./dominiq.db
+      - DATABASE_URL=postgresql://dominiq:dominiq@postgres:5432/dominiq
       - OLLAMA_BASE_URL=http://ollama:11434
       - LLM_MODEL=phi3:mini
       - MAX_TOKENS=2048
       - TEMPERATURE=0.3
     volumes:
       - ./backend:/app
-      - backend_data:/app/instance
     depends_on:
+      - postgres
       - ollama
     restart: unless-stopped
     networks:
-      - dominiq-net                     # <-- добавлено
+      - dominiq-net
 
   frontend:
     build: ./frontend
@@ -48,7 +62,7 @@ services:
       - backend
     restart: unless-stopped
     networks:
-      - dominiq-net                     # <-- добавлено
+      - dominiq-net
 
   # === Стек мониторинга ===
   prometheus:
@@ -124,7 +138,6 @@ services:
     networks:
       - dominiq-net
 
-  # === Exporter для сбора метрик Docker ===
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: dominiq-cadvisor
@@ -141,8 +154,8 @@ services:
     privileged: true
 
 volumes:
+  postgres_data:
   ollama_data:
-  backend_data:
   prometheus_data:
   grafana_data:
   elasticsearch_data:

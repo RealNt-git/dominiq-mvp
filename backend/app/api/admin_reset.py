@@ -1,12 +1,13 @@
-###backend/app/api/admin_reset.py
+# backend/app/api/admin_reset.py
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 
 from app.database import get_db
 from app.api.auth import get_current_user
 from app import models
+from app import schemas
 
 logger = logging.getLogger(__name__)
 
@@ -72,4 +73,52 @@ def reset_database(
     return {
         "message": "Database reset successful",
         "deleted": deleted_counts
+    }
+
+
+@router.get("/tables", response_model=schemas.TableListResponse)
+def list_tables(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Возвращает список всех таблиц в базе данных.
+    """
+    inspector = inspect(db.bind)
+    tables = inspector.get_table_names()
+    return {"tables": tables}
+
+
+@router.get("/table/{table_name}", response_model=schemas.TableDataResponse)
+def get_table_data(
+    table_name: str,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Возвращает данные из указанной таблицы с пагинацией.
+    """
+    inspector = inspect(db.bind)
+    if table_name not in inspector.get_table_names():
+        raise HTTPException(status_code=404, detail="Table not found")
+    
+    columns = [col['name'] for col in inspector.get_columns(table_name)]
+    
+    count_result = db.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
+    
+    result = db.execute(
+        text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset"),
+        {"limit": limit, "offset": offset}
+    )
+    rows = [dict(row._mapping) for row in result]
+    
+    return {
+        "table_name": table_name,
+        "columns": columns,
+        "total": count_result,
+        "data": rows,
+        "limit": limit,
+        "offset": offset
     }

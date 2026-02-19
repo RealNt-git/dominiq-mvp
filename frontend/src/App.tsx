@@ -16,6 +16,9 @@ import DraftList from './pages/admin/DraftList';
 import TermManager from './pages/admin/TermManager';
 import PlanManager from './pages/admin/PlanManager'; // новый компонент для управления планами
 import AdminReset from './pages/admin/ResetData'; // новый импорт
+import TopicSuggester from './pages/admin/TopicSuggester';
+import SavedTopics from './pages/admin/SavedTopics';
+import TableViewer from './pages/admin/TableViewer';
 import MyPlan from './pages/MyPlan';
 
 // Компонент защищённого маршрута
@@ -52,6 +55,9 @@ function App() {
           <Route path="admin/drafts" element={<DraftList />} />
           <Route path="admin/terms" element={<TermManager />} />
           <Route path="admin/plans" element={<PlanManager />} /> 
+          <Route path="admin/topics" element={<TopicSuggester />} />
+          <Route path="admin/saved-topics" element={<SavedTopics />} />
+          <Route path="admin/table-viewer" element={<TableViewer />} />
           <Route path="admin/reset" element={<AdminReset />} /> 
         </Route>
       </Routes>

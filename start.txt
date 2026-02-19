@@ -48,3 +48,53 @@ Grafana: http://localhost:3000 (импортируйте дашборд)
 dominiq-logs*
 
 dominiq-logs-*
+
+docker exec -it dominiq-backend sh
+
+оболочку Python или написать простой скрипт. Например:
+
+bash
+docker exec -it dominiq-backend python
+Затем в Python:
+
+python
+import sqlite3
+conn = sqlite3.connect('/app/dominiq.db')  
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE topic_generation_sessions (    id INTEGER PRIMARY KEY AUTOINCREMENT,    user_id INTEGER NOT NULL REFERENCES users(id),    domain VARCHAR NOT NULL,    role VARCHAR DEFAULT 'аналитик',    step VARCHAR DEFAULT 'input',    suggested_topics JSON,    selected_topics JSON,    generated_content JSON,    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,    updated_at DATETIME)")
+conn.commit()
+conn.close()
+exit()
+
+
+Проверьте, запущен ли контейнер Ollama:
+
+bash
+docker ps | grep ollama
+Если контейнер не в списке, запустите его: docker-compose up -d ollama.
+
+Проверьте доступность API из контейнера backend:
+
+bash
+docker exec -it dominiq-backend curl http://ollama:11434/api/tags
+Должен вернуться JSON со списком доступных моделей. Если ошибка, возможно, Ollama не слушает на этом порту.
+
+Если модель не загружена, выполните её загрузку:
+
+bash
+docker exec -it dominiq-ollama ollama pull phi3:mini
+(Модель должна соответствовать той, что указана в переменной LLM_MODEL).
+
+Проверьте логи Ollama:
+
+bash
+docker logs dominiq-ollama
+Там должны быть сообщения о запуске и загрузке модели.
+
+docker stats
+
+docker-compose build --no-cache backend
+docker-compose up -d backend
+
+docker-compose logs --tail 50 backend
+
