@@ -2,6 +2,7 @@
 # API для геймификации: прогресс, достижения, уровни
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
 # Исправлен подсчёт пройденных квизов
+# Добавлена автоматическая проверка и выдача достижений при запросе прогресса
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.api.auth import get_current_user
 from app import models, schemas
+from app.services.achievement_checker import AchievementChecker
 
 router = APIRouter(tags=["Gamification"])
 
@@ -34,6 +36,10 @@ def get_user_progress(
     - quizzes_passed: количество пройденных квизов
     - achievements_count: количество полученных достижений
     """
+    # Проверяем и выдаём достижения на основе текущего прогресса
+    checker = AchievementChecker(db, current_user)
+    checker.check_and_award()
+
     cards_studied = db.query(models.UserProgress).filter(
         models.UserProgress.user_id == current_user.id,
         models.UserProgress.term_id.isnot(None)
@@ -43,7 +49,7 @@ def get_user_progress(
     quizzes_passed = db.query(models.UserProgress).filter(
         models.UserProgress.user_id == current_user.id,
         models.UserProgress.quiz_id.isnot(None)
-    ).count()
+    ).distinct(models.UserProgress.quiz_id).count()
 
     achievements_count = db.query(models.UserAchievement).filter(
         models.UserAchievement.user_id == current_user.id
@@ -63,6 +69,10 @@ def get_achievements(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    # Также проверяем достижения при запросе списка, чтобы они были актуальны
+    checker = AchievementChecker(db, current_user)
+    checker.check_and_award()
+
     achievements = db.query(models.Achievement).all()
     earned_ids = {
         ua.achievement_id for ua in db.query(models.UserAchievement).filter(

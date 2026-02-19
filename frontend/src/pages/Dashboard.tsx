@@ -1,6 +1,7 @@
 // frontend/src/pages/Dashboard.tsx
 // Дашборд студента: приветствие, прогресс, ссылки на разделы
 // Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
+// Добавлены ссылки на соответствующие страницы для блоков статистики (карточки, квизы, достижения)
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -66,9 +67,10 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Статистика */}
+        {/* Статистика со ссылками */}
         {progress && (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            {/* Блок XP без ссылки (нет отдельной страницы) */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <dt className="text-sm font-medium text-gray-500 truncate">
@@ -79,36 +81,48 @@ const Dashboard: React.FC = () => {
                 </dd>
               </div>
             </div>
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Изучено карточек
-                </dt>
-                <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                  {progress.cards_studied}
-                </dd>
+
+            {/* Карточки – ссылка на /cards */}
+            <Link to="/cards" className="block group">
+              <div className="bg-white overflow-hidden shadow rounded-lg transition group-hover:shadow-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Изучено карточек
+                  </dt>
+                  <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                    {progress.cards_studied}
+                  </dd>
+                </div>
               </div>
-            </div>
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Пройдено квизов
-                </dt>
-                <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                  {progress.quizzes_passed}
-                </dd>
+            </Link>
+
+            {/* Квизы – ссылка на /quizzes */}
+            <Link to="/quizzes" className="block group">
+              <div className="bg-white overflow-hidden shadow rounded-lg transition group-hover:shadow-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Пройдено квизов
+                  </dt>
+                  <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                    {progress.quizzes_passed}
+                  </dd>
+                </div>
               </div>
-            </div>
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <dt className="text-sm font-medium text-gray-500 truncate">
-                  Достижений
-                </dt>
-                <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                  {progress.achievements_count}
-                </dd>
+            </Link>
+
+            {/* Достижения – ссылка на /achievements */}
+            <Link to="/achievements" className="block group">
+              <div className="bg-white overflow-hidden shadow rounded-lg transition group-hover:shadow-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Достижений
+                  </dt>
+                  <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                    {progress.achievements_count}
+                  </dd>
+                </div>
               </div>
-            </div>
+            </Link>
           </div>
         )}
 
