@@ -2,8 +2,10 @@
 # API для обучения: карточки, квизы, прогресс
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
 # Добавлено сохранение прогресса по квизам
+# Добавлен эндпоинт для сброса прогресса по теме
 
-from datetime import date, timedelta, datetime  # добавлен datetime
+import logging
+from datetime import date, timedelta, datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -12,10 +14,12 @@ from app.database import get_db
 from app.api.auth import get_current_user
 from app import models, schemas
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["Learning"])
 
 # ---------- Вспомогательные функции ----------
-def calculate_next_review(known: bool, repetitions: int, ease_factor: float, interval: int) -> (int, float, int):
+def calculate_next_review(known: bool, repetitions: int, ease_factor: float, interval: int) -> tuple[int, float, int]:
     """
     Упрощённая реализация алгоритма SuperMemo-2.
     Возвращает (новый интервал в днях, новый ease_factor, новое количество повторений).
@@ -196,7 +200,7 @@ def submit_quiz(
         user_id=current_user.id,
         quiz_id=quiz.id,
         last_review=datetime.now(),
-        total_attempts=1,  # можно использовать для подсчёта попыток
+        total_attempts=1,
     )
     db.add(quiz_progress)
 
@@ -208,3 +212,38 @@ def submit_quiz(
         total_count=len(questions),
         xp_earned=xp_earned
     )
+
+
+# ---------- Сброс прогресса по теме ----------
+@router.post("/topics/{topic_id}/reset-progress", status_code=200)
+def reset_topic_progress(
+    topic_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Сбрасывает прогресс пользователя по всем терминам указанной темы.
+    Удаляет все записи UserProgress, связанные с терминами этой темы.
+    """
+    # Проверяем существование темы
+    topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    # Находим все термины темы
+    term_ids = db.query(models.Term.id).filter(models.Term.topic_id == topic_id).all()
+    term_ids = [tid for (tid,) in term_ids]
+
+    if not term_ids:
+        return {"message": "No terms found for this topic"}
+
+    # Удаляем записи UserProgress для этих терминов и текущего пользователя
+    deleted_count = db.query(models.UserProgress).filter(
+        models.UserProgress.user_id == current_user.id,
+        models.UserProgress.term_id.in_(term_ids)
+    ).delete(synchronize_session=False)
+
+    db.commit()
+
+    logger.info(f"User {current_user.email} reset progress for topic {topic_id}, deleted {deleted_count} records")
+    return {"message": f"Progress reset for topic, {deleted_count} records deleted"}

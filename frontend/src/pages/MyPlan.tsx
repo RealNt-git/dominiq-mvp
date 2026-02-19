@@ -2,22 +2,21 @@
 // Страница личного кабинета пользователя – отображение плана развития и прогресса
 // Добавлена подсказка о способах повышения прогресса
 // Добавлено отображение домена для каждой темы
+// Добавлен сброс прогресса при нажатии на кнопку "Изучать тему"
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
-// Интерфейс для домена
 interface Domain {
   id: number;
   name: string;
 }
 
-// Расширяем интерфейс Topic, добавляем domain_id
 interface Topic {
   id: number;
   name: string;
-  domain_id: number;      // добавлено поле домена
+  domain_id: number;
 }
 
 interface Grade {
@@ -39,12 +38,13 @@ interface Plan {
 }
 
 const MyPlan: React.FC = () => {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resettingTopicId, setResettingTopicId] = useState<number | null>(null);
 
-  // Загружаем планы и домены одновременно
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -66,10 +66,22 @@ const MyPlan: React.FC = () => {
     fetchData();
   }, []);
 
-  // Вспомогательная функция для получения имени домена по domain_id
   const getDomainName = (domainId: number): string => {
     const domain = domains.find(d => d.id === domainId);
     return domain ? domain.name : 'Неизвестный домен';
+  };
+
+  const handleResetAndNavigate = async (topicId: number) => {
+    setResettingTopicId(topicId);
+    setError(null);
+    try {
+      await api.post(`/api/learn/topics/${topicId}/reset-progress`);
+      navigate(`/cards?topic_id=${topicId}`);
+    } catch (err) {
+      console.error('Failed to reset progress:', err);
+      setError('Не удалось сбросить прогресс. Попробуйте позже.');
+      setResettingTopicId(null);
+    }
   };
 
   if (loading) {
@@ -123,7 +135,6 @@ const MyPlan: React.FC = () => {
                     {plan.topic.name}
                   </h3>
                   <div className="space-y-2 text-sm text-gray-600">
-                    {/* Добавлено отображение домена */}
                     <p>🏢 Домен: <span className="font-medium">{domainName}</span></p>
                     <p>🎯 Целевой грейд: <span className="font-medium">{plan.grade.name}</span></p>
                     <p>📊 Приоритет: <span className="font-medium">{plan.priority}</span></p>
@@ -149,12 +160,13 @@ const MyPlan: React.FC = () => {
                     💡 Чтобы повысить прогресс, изучайте карточки и проходите квизы по этой теме.
                   </div>
                   <div className="mt-4">
-                    <Link
-                      to={`/cards?topic_id=${plan.topic_id}`}
-                      className="inline-block w-full text-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+                    <button
+                      onClick={() => handleResetAndNavigate(plan.topic_id)}
+                      disabled={resettingTopicId === plan.topic_id}
+                      className="inline-block w-full text-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition disabled:bg-indigo-300"
                     >
-                      Изучать тему
-                    </Link>
+                      {resettingTopicId === plan.topic_id ? 'Сброс...' : 'Изучать тему'}
+                    </button>
                   </div>
                 </div>
               </div>
