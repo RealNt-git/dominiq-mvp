@@ -2,6 +2,7 @@
 # Главный файл FastAPI приложения
 # Добавлен глобальный обработчик необработанных исключений
 # Добавлены метрики Prometheus и логирование в Logstash
+# Добавлена инициализация стандартных достижений
 
 import logging
 import sys
@@ -12,27 +13,27 @@ from sqlalchemy.orm import Session
 
 from app.database import engine, init_db, SessionLocal
 from app import models
-from app.api import auth, content, learning, gamification, ai_assistant, plan  # добавлен plan
-from app.utils.helpers import ensure_default_domains, ensure_default_grades  # добавлен ensure_default_grades
+from app.api import auth, content, learning, gamification, ai_assistant, plan
+from app.utils.helpers import ensure_default_domains, ensure_default_grades
 
 from app.api import admin_reset
-
-# тесты
 from app.api import test_runner
-
 
 # Импорты для Prometheus и Logstash
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram, Gauge
 import logstash
 
-# Импорт кастомных метрик из отдельного модуля (для предотвращения циклических импортов)
+# Импорт кастомных метрик из отдельного модуля
 from app.core.metrics import (
     document_upload_total,
     document_processing_duration_seconds,
     active_users,
     http_request_duration_seconds
 )
+
+# Импорт инициализатора достижений
+from app.core.init_achievements import init_achievements
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -41,7 +42,6 @@ logger = logging.getLogger(__name__)
 # Добавляем отправку логов в Logstash
 try:
     logstash_handler = logstash.TCPLogstashHandler('logstash', 5000, version=1)
-    # Добавляем к корневому логгеру (чтобы все логи приложения шли в Logstash)
     logging.getLogger().addHandler(logstash_handler)
     logger.info("Logstash handler added successfully")
 except Exception as e:
@@ -63,7 +63,9 @@ init_db()
 db = SessionLocal()
 try:
     ensure_default_domains(db)
-    ensure_default_grades(db)   # вызов новой функции
+    ensure_default_grades(db)
+    # Инициализация стандартных достижений
+    init_achievements(db)
 finally:
     db.close()
 
@@ -71,7 +73,6 @@ finally:
 app = FastAPI(title="Dominiq MVP", version="1.0.0")
 
 # === Инициализация метрик Prometheus ===
-# Инструментатор для автоматического сбора метрик HTTP-запросов
 instrumentator = Instrumentator(
     should_group_status_codes=True,
     should_ignore_untemplated=True,
@@ -95,7 +96,7 @@ app.include_router(content.content_router, prefix="/api")
 app.include_router(learning.router, prefix="/api/learn")
 app.include_router(gamification.router, prefix="/api/user")
 app.include_router(ai_assistant.router, prefix="/api/admin/ai")
-app.include_router(plan.router, prefix="/api/plan")  # подключили новый роутер
+app.include_router(plan.router, prefix="/api/plan")
 app.include_router(test_runner.router, prefix="/api")
 app.include_router(admin_reset.router, prefix="/api")
 

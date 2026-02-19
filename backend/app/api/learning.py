@@ -3,6 +3,7 @@
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
 # Добавлено сохранение прогресса по квизам
 # Добавлен эндпоинт для сброса прогресса по теме
+# Добавлена автоматическая проверка достижений
 
 import logging
 from datetime import date, timedelta, datetime
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.api.auth import get_current_user
 from app import models, schemas
+from app.services.achievement_checker import AchievementChecker
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +139,11 @@ def review_card(
     current_user.level = int((current_user.total_xp // 100) + 1)
 
     db.commit()
+
+    # Проверяем достижения
+    checker = AchievementChecker(db, current_user)
+    checker.check_and_award()
+
     return {"xp_earned": xp_earned, "new_level": current_user.level}
 
 
@@ -205,6 +212,10 @@ def submit_quiz(
     db.add(quiz_progress)
 
     db.commit()
+
+    # Проверяем достижения
+    checker = AchievementChecker(db, current_user)
+    checker.check_and_award()
 
     return schemas.QuizResult(
         quiz_id=quiz.id,
