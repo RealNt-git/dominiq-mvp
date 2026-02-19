@@ -186,12 +186,14 @@ def get_my_plans(
         ).count()
         logger.debug(f"Topic {plan.topic_id} has {total_terms} terms")
 
-        # Количество терминов из этой темы, по которым есть прогресс у пользователя
+        # Количество терминов из этой темы, которые пользователь уже знает (repetitions > 0)
+        # Исправлено: теперь считаются только те термины, по которым есть прогресс и последний ответ был "знаю"
         studied_terms = db.query(models.UserProgress).join(
             models.Term, models.UserProgress.term_id == models.Term.id
         ).filter(
             models.Term.topic_id == plan.topic_id,
-            models.UserProgress.user_id == current_user.id
+            models.UserProgress.user_id == current_user.id,
+            models.UserProgress.repetitions > 0   # добавлено условие для учёта только "знаю"
         ).count()
         logger.debug(f"User studied {studied_terms} terms for topic {plan.topic_id}")
 
