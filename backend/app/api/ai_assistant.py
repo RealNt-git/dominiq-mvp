@@ -2,6 +2,7 @@
 # API для AI-ассистента методолога
 # Добавлено подробное логирование всех эндпоинтов
 # Добавлены эндпоинты для работы с черновиками вопросов и получения терминов с вопросами
+# Исправлено: upload_document теперь требует topic_id, approve_drafts использует тему документа
 
 import tempfile
 import shutil
@@ -19,6 +20,7 @@ from app.database import get_db
 from app.api.auth import get_current_user
 from app import models, schemas
 from app.services import document_processor
+from app.api.content import get_topic_or_404   # функция проверки темы
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +42,18 @@ def list_documents(
 async def upload_document(
     file: UploadFile = File(..., description="Текстовый файл (.txt или .md)"),
     domain: str = Form(..., description="Предметная область (например, Ритейл)"),
+    topic_id: int = Form(..., description="ID темы, к которой относится документ"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    logger.info(f"User {current_user.email} uploading file: {file.filename}, domain: {domain}")
+    logger.info(f"User {current_user.email} uploading file: {file.filename}, domain: {domain}, topic_id: {topic_id}")
 
     if not (file.filename.endswith('.txt') or file.filename.endswith('.md')):
         logger.warning(f"Invalid file extension: {file.filename}")
         raise HTTPException(status_code=400, detail="Only .txt or .md files are allowed")
+
+    # Проверяем существование темы
+    topic = get_topic_or_404(db, topic_id)   # вызовет 404, если темы нет
 
     tmp_path = None
     try:
@@ -57,7 +63,8 @@ async def upload_document(
         logger.info(f"Temporary file created: {tmp_path}")
 
         logger.info("Calling document_processor.process_document...")
-        doc_id = await document_processor.process_document(tmp_path, domain, file.filename)
+        # Передаём topic_id в процессор
+        doc_id = await document_processor.process_document(tmp_path, domain, file.filename, topic_id)
         logger.info(f"Document processed successfully, doc_id: {doc_id}")
         return {"document_id": doc_id, "message": "Документ загружен и обработан"}
     except Exception as e:
@@ -261,16 +268,16 @@ def approve_drafts(
             db.flush()
             logger.info(f"Created new domain: {doc.domain}")
 
-    # Создаём Quiz для документа
+    # Создаём Quiz для документа, привязывая к теме документа
     quiz = None
     if doc:
         quiz = models.Quiz(
             title=f"Квиз по документу: {doc.filename}",
-            topic_id=None
+            topic_id=doc.topic_id   # используем тему документа
         )
         db.add(quiz)
         db.flush()
-        logger.info(f"Created quiz for document {doc.id}: {quiz.title}")
+        logger.info(f"Created quiz for document {doc.id}: {quiz.title} (topic_id={quiz.topic_id})")
 
     created_terms = []
     for draft in drafts:
@@ -281,7 +288,7 @@ def approve_drafts(
             mnemonic=draft.mnemonic,
             image_url=None,
             domain_id=domain.id if domain else None,
-            topic_id=None,
+            topic_id=doc.topic_id if doc else None,  # можно также привязать термины к теме документа (опционально)
             source_document=doc.filename if doc else None,
             source_fragment=draft.context
         )
@@ -306,7 +313,7 @@ def approve_drafts(
             for dq in draft_questions:
                 question = models.Question(
                     quiz_id=quiz.id,
-                    term_id=term.id,                     
+                    term_id=term.id,
                     text=dq.question,
                     type="single",
                     options=dq.options,

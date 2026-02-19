@@ -96,6 +96,13 @@ const Layout: React.FC = () => {
                       >
                         Планы развития
                       </Link>
+                      <Link
+                        to="admin/reset"
+                        onClick={closeMethodistMenu}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
+                      >
+                        Управление БД
+                      </Link>
                     </div>
                   )}
                 </div>

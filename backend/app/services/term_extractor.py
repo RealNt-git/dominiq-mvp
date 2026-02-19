@@ -1,5 +1,5 @@
 # backend/app/services/term_extractor.py
-# Модуль быстрого извлечения кандидатов в термины (только YAKE)
+# Модуль быстрого извлечения кандидатов в термины (только YAKE) с логированием
 
 import logging
 from typing import List
@@ -12,14 +12,30 @@ def extract_candidates(text: str, top_n: int = 30, language: str = "russian") ->
     Извлекает кандидатов в термины из текста с помощью YAKE.
     """
     if not text or not text.strip():
-        logger.debug("Empty text, returning empty list")
+        logger.info("Empty text provided to extract_candidates", extra={
+            "action": "extract_candidates",
+            "text_length": 0,
+            "event": "empty"
+        })
         return []
 
     try:
         yake_extractor = yake.KeywordExtractor(lan=language, n=2, top=top_n, features=None)
         keywords = [kw for kw, score in yake_extractor.extract_keywords(text)]
-        logger.debug(f"YAKE extracted {len(keywords)} keywords")
+        logger.info("YAKE extraction completed", extra={
+            "action": "extract_candidates",
+            "language": language,
+            "top_n": top_n,
+            "candidates_count": len(keywords),
+            "event": "success"
+        })
         return keywords
     except Exception as e:
-        logger.error(f"YAKE extraction failed: {e}")
+        logger.error("YAKE extraction failed", extra={
+            "action": "extract_candidates",
+            "language": language,
+            "top_n": top_n,
+            "error": str(e),
+            "exc_info": True
+        })
         return []

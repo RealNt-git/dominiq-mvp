@@ -15,6 +15,8 @@ from app import models
 from app.api import auth, content, learning, gamification, ai_assistant, plan  # добавлен plan
 from app.utils.helpers import ensure_default_domains, ensure_default_grades  # добавлен ensure_default_grades
 
+from app.api import admin_reset
+
 # тесты
 from app.api import test_runner
 
@@ -95,6 +97,7 @@ app.include_router(gamification.router, prefix="/api/user")
 app.include_router(ai_assistant.router, prefix="/api/admin/ai")
 app.include_router(plan.router, prefix="/api/plan")  # подключили новый роутер
 app.include_router(test_runner.router, prefix="/api")
+app.include_router(admin_reset.router, prefix="/api")
 
 @app.get("/")
 def root():

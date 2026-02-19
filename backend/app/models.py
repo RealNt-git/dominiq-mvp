@@ -176,10 +176,12 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, nullable=False)
     domain = Column(String, nullable=False)           # домен, для которого загружен документ
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)  # обязательно    
     content = Column(Text, nullable=False)            # полный текст
     uploaded_at = Column(DateTime, server_default=func.now())
     processed = Column(Boolean, default=False)        # флаг завершения обработки
 
+    topic = relationship("Topic", backref="documents")
     drafts_terms = relationship("DraftTerm", back_populates="document", cascade="all, delete-orphan")
     drafts_quizzes = relationship("DraftQuiz", back_populates="document", cascade="all, delete-orphan")
 

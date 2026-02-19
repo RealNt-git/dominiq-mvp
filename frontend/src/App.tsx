@@ -15,6 +15,7 @@ import DocumentUpload from './pages/admin/DocumentUpload';
 import DraftList from './pages/admin/DraftList';
 import TermManager from './pages/admin/TermManager';
 import PlanManager from './pages/admin/PlanManager'; // новый компонент для управления планами
+import AdminReset from './pages/admin/ResetData'; // новый импорт
 import MyPlan from './pages/MyPlan';
 
 // Компонент защищённого маршрута
@@ -50,7 +51,8 @@ function App() {
           <Route path="admin/upload" element={<DocumentUpload />} />
           <Route path="admin/drafts" element={<DraftList />} />
           <Route path="admin/terms" element={<TermManager />} />
-          <Route path="admin/plans" element={<PlanManager />} /> {/* новый маршрут */}
+          <Route path="admin/plans" element={<PlanManager />} /> 
+          <Route path="admin/reset" element={<AdminReset />} /> 
         </Route>
       </Routes>
     </BrowserRouter>

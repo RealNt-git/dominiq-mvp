@@ -1,14 +1,23 @@
 // frontend/src/pages/MyPlan.tsx
 // Страница личного кабинета пользователя – отображение плана развития и прогресса
 // Добавлена подсказка о способах повышения прогресса
+// Добавлено отображение домена для каждой темы
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 
+// Интерфейс для домена
+interface Domain {
+  id: number;
+  name: string;
+}
+
+// Расширяем интерфейс Topic, добавляем domain_id
 interface Topic {
   id: number;
   name: string;
+  domain_id: number;      // добавлено поле домена
 }
 
 interface Grade {
@@ -31,25 +40,37 @@ interface Plan {
 
 const MyPlan: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Загружаем планы и домены одновременно
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await api.get('/api/plan/plans/my');
-        setPlans(response.data);
+        const [plansRes, domainsRes] = await Promise.all([
+          api.get('/api/plan/plans/my'),
+          api.get('/api/domains')
+        ]);
+        setPlans(plansRes.data);
+        setDomains(domainsRes.data);
       } catch (err) {
-        console.error('Failed to load my plan:', err);
-        setError('Не удалось загрузить ваш план развития');
+        console.error('Failed to load data:', err);
+        setError('Не удалось загрузить данные');
       } finally {
         setLoading(false);
       }
     };
-    fetchPlans();
+    fetchData();
   }, []);
+
+  // Вспомогательная функция для получения имени домена по domain_id
+  const getDomainName = (domainId: number): string => {
+    const domain = domains.find(d => d.id === domainId);
+    return domain ? domain.name : 'Неизвестный домен';
+  };
 
   if (loading) {
     return (
@@ -91,6 +112,7 @@ const MyPlan: React.FC = () => {
               ? Math.round((plan.studied_terms / plan.total_terms) * 100)
               : 0;
             const remaining = plan.total_terms - plan.studied_terms;
+            const domainName = getDomainName(plan.topic.domain_id);
             return (
               <div
                 key={plan.id}
@@ -101,6 +123,8 @@ const MyPlan: React.FC = () => {
                     {plan.topic.name}
                   </h3>
                   <div className="space-y-2 text-sm text-gray-600">
+                    {/* Добавлено отображение домена */}
+                    <p>🏢 Домен: <span className="font-medium">{domainName}</span></p>
                     <p>🎯 Целевой грейд: <span className="font-medium">{plan.grade.name}</span></p>
                     <p>📊 Приоритет: <span className="font-medium">{plan.priority}</span></p>
                     {plan.target_date && (

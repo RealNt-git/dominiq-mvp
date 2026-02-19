@@ -258,6 +258,7 @@ class UserAchievementOut(UserAchievementBase):
 class DocumentBase(BaseSchema):
     filename: str
     domain: str
+    topic_id: int   # будет заполняться автоматически
     content: str
     processed: bool = False
 

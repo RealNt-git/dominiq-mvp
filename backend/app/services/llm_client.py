@@ -1,5 +1,5 @@
 # backend/app/services/llm_client.py
-# Клиент Ollama с логированием времени
+# Клиент Ollama с подробным структурированным логированием
 
 import os
 import json
@@ -24,17 +24,25 @@ class LLMClient:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self._client = httpx.AsyncClient(timeout=REQUEST_TIMEOUT)
-        logger.debug(f"LLMClient initialized: model={model}, base_url={base_url}")
+        logger.info("LLMClient initialized", extra={
+            "action": "llm_init",
+            "model": model,
+            "base_url": base_url
+        })
 
     async def close(self):
         await self._client.aclose()
-        logger.debug("LLMClient closed")
+        logger.info("LLMClient closed", extra={"action": "llm_close"})
 
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        before_sleep=lambda retry_state: logger.warning(f"Retrying LLM request (attempt {retry_state.attempt_number})")
+        before_sleep=lambda retry_state: logger.warning("Retrying LLM request", extra={
+            "action": "llm_generate",
+            "attempt": retry_state.attempt_number,
+            "wait": retry_state.next_action.sleep
+        })
     )
     async def generate(self, prompt: str, max_tokens: Optional[int] = None, temperature: Optional[float] = None) -> str:
         url = f"{self.base_url}/api/generate"
@@ -47,28 +55,50 @@ class LLMClient:
                 "temperature": temperature or self.temperature,
             }
         }
-        logger.info(f"Sending request to Ollama, prompt length: {len(prompt)} chars")
+        logger.info("Sending request to Ollama", extra={
+            "action": "llm_generate",
+            "model": self.model,
+            "prompt_length": len(prompt),
+            "max_tokens": max_tokens or self.max_tokens,
+            "temperature": temperature or self.temperature,
+            "event": "start"
+        })
         start = time.time()
         try:
             response = await self._client.post(url, json=payload)
             duration = time.time() - start
-            logger.info(f"Ollama responded in {duration:.2f}s, status {response.status_code}")
+            logger.info("Ollama responded", extra={
+                "action": "llm_generate",
+                "status_code": response.status_code,
+                "duration_sec": round(duration, 3),
+                "event": "success"
+            })
             response.raise_for_status()
             data = response.json()
             return data.get("response", "")
         except Exception as e:
-            logger.error(f"Ollama request failed after {time.time()-start:.2f}s: {e}")
+            duration = time.time() - start
+            logger.error("Ollama request failed", extra={
+                "action": "llm_generate",
+                "duration_sec": round(duration, 3),
+                "error": str(e),
+                "exc_info": True
+            })
             raise
 
     async def extract_terms_with_context(self, text_chunk: str, domain: str) -> List[Dict[str, Any]]:
-        logger.debug(f"extract_terms_with_context called for domain {domain}, chunk length {len(text_chunk)}")
+        logger.info("Extracting terms with context", extra={
+            "action": "extract_terms_with_context",
+            "domain": domain,
+            "chunk_length": len(text_chunk),
+            "event": "start"
+        })
         prompt = f"""
 Ты — эксперт в области {domain}. Из следующего текста выдели все ключевые термины и для каждого найди определение и пример использования (если есть).
 Ответ верни строго в формате JSON-массива объектов с полями: term, definition, example (может быть пустой строкой).
 Текст: "{text_chunk}"
 """
         response_text = await self.generate(prompt, max_tokens=1000, temperature=0.1)
-        # Парсинг JSON (как ранее)
         try:
             start = response_text.find("[")
             end = response_text.rfind("]") + 1
@@ -84,12 +114,30 @@ class LLMClient:
                                 "definition": item.get("definition", ""),
                                 "example": item.get("example", ""),
                             })
+                    logger.info("Terms extracted successfully", extra={
+                        "action": "extract_terms_with_context",
+                        "domain": domain,
+                        "terms_count": len(validated)
+                    })
                     return validated
-            logger.warning(f"Could not parse JSON from LLM response: {response_text[:200]}")
+            logger.warning("Could not parse JSON from LLM response", extra={
+                "action": "extract_terms_with_context",
+                "domain": domain,
+                "response_preview": response_text[:200]
+            })
             return []
         except json.JSONDecodeError as e:
-            logger.error(f"JSON decode error: {e}. Response: {response_text[:200]}")
+            logger.error("JSON decode error in extract_terms_with_context", extra={
+                "action": "extract_terms_with_context",
+                "domain": domain,
+                "error": str(e)
+            })
             return []
         except Exception as e:
-            logger.error(f"Error in extract_terms_with_context: {e}")
+            logger.error("Unexpected error in extract_terms_with_context", extra={
+                "action": "extract_terms_with_context",
+                "domain": domain,
+                "error": str(e),
+                "exc_info": True
+            })
             return []

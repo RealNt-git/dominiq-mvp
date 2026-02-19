@@ -44,3 +44,7 @@ GET /api/test/runs/{run_id} — детали конкретного запуск
 Prometheus: http://localhost:9090 (метрики test_runs_total, test_duration_seconds)
 
 Grafana: http://localhost:3000 (импортируйте дашборд)
+
+dominiq-logs*
+
+dominiq-logs-*
