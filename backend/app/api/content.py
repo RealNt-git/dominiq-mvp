@@ -2,6 +2,7 @@
 # Модуль API для управления контентом (термины, темы, квизы)
 # Версия: соответствует ТЗ Dominiq-MVP-TZ-v1.0
 # Добавлено подробное логирование всех эндпоинтов с extra-полями для Kibana
+# Добавлен эндпоинт для экспертного добавления термина с вопросами
 
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
-from app import schemas
+from app import schemas, models  # добавлен импорт models
 from app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -25,8 +26,7 @@ quizzes_router = APIRouter(prefix="/quizzes", tags=["Quizzes"])
 questions_router = APIRouter(prefix="/questions", tags=["Questions"])
 
 # ---------- Вспомогательные функции ----------
-def get_domain_or_404(db: Session, domain_id: int) -> "models.Domain":
-    from app import models
+def get_domain_or_404(db: Session, domain_id: int) -> models.Domain:
     domain = db.query(models.Domain).filter(models.Domain.id == domain_id).first()
     if not domain:
         logger.warning("Domain not found", extra={
@@ -37,8 +37,7 @@ def get_domain_or_404(db: Session, domain_id: int) -> "models.Domain":
         raise HTTPException(status_code=404, detail="Domain not found")
     return domain
 
-def get_topic_or_404(db: Session, topic_id: int) -> "models.Topic":
-    from app import models
+def get_topic_or_404(db: Session, topic_id: int) -> models.Topic:
     topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
     if not topic:
         logger.warning("Topic not found", extra={
@@ -49,8 +48,7 @@ def get_topic_or_404(db: Session, topic_id: int) -> "models.Topic":
         raise HTTPException(status_code=404, detail="Topic not found")
     return topic
 
-def get_term_or_404(db: Session, term_id: int) -> "models.Term":
-    from app import models
+def get_term_or_404(db: Session, term_id: int) -> models.Term:
     term = db.query(models.Term).filter(models.Term.id == term_id).first()
     if not term:
         logger.warning("Term not found", extra={
@@ -61,8 +59,7 @@ def get_term_or_404(db: Session, term_id: int) -> "models.Term":
         raise HTTPException(status_code=404, detail="Term not found")
     return term
 
-def get_flashcard_or_404(db: Session, flashcard_id: int) -> "models.Flashcard":
-    from app import models
+def get_flashcard_or_404(db: Session, flashcard_id: int) -> models.Flashcard:
     flashcard = db.query(models.Flashcard).filter(models.Flashcard.id == flashcard_id).first()
     if not flashcard:
         logger.warning("Flashcard not found", extra={
@@ -73,8 +70,7 @@ def get_flashcard_or_404(db: Session, flashcard_id: int) -> "models.Flashcard":
         raise HTTPException(status_code=404, detail="Flashcard not found")
     return flashcard
 
-def get_quiz_or_404(db: Session, quiz_id: int) -> "models.Quiz":
-    from app import models
+def get_quiz_or_404(db: Session, quiz_id: int) -> models.Quiz:
     quiz = db.query(models.Quiz).filter(models.Quiz.id == quiz_id).first()
     if not quiz:
         logger.warning("Quiz not found", extra={
@@ -85,8 +81,7 @@ def get_quiz_or_404(db: Session, quiz_id: int) -> "models.Quiz":
         raise HTTPException(status_code=404, detail="Quiz not found")
     return quiz
 
-def get_question_or_404(db: Session, question_id: int) -> "models.Question":
-    from app import models
+def get_question_or_404(db: Session, question_id: int) -> models.Question:
     question = db.query(models.Question).filter(models.Question.id == question_id).first()
     if not question:
         logger.warning("Question not found", extra={
@@ -109,7 +104,6 @@ def list_domains(
         "user_email": current_user.email,
         "action": "list_domains"
     })
-    from app import models
     domains = db.query(models.Domain).all()
     logger.info("Domains listed", extra={
         "user_email": current_user.email,
@@ -131,7 +125,6 @@ def create_domain(
         "action": "create_domain",
         "domain_name": domain.name
     })
-    from app import models
     from app.utils.helpers import get_or_create_general_topic
     db_domain = models.Domain(**domain.dict())
     db.add(db_domain)
@@ -213,7 +206,6 @@ def list_topics(
         "action": "list_topics",
         "filter_domain_id": domain_id
     })
-    from app import models
     query = db.query(models.Topic)
     if domain_id:
         query = query.filter(models.Topic.domain_id == domain_id)
@@ -246,7 +238,6 @@ def create_topic(
     # Проверка parent_id, если указан
     if topic.parent_id:
         get_topic_or_404(db, topic.parent_id)
-    from app import models
     db_topic = models.Topic(**topic.dict())
     db.add(db_topic)
     db.commit()
@@ -332,7 +323,6 @@ def list_terms(
         "filter_domain_id": domain_id,
         "filter_topic_id": topic_id
     })
-    from app import models
     query = db.query(models.Term)
     if domain_id:
         query = query.filter(models.Term.domain_id == domain_id)
@@ -387,7 +377,6 @@ def create_term(
     # Проверка темы, если указана
     if term.topic_id:
         get_topic_or_404(db, term.topic_id)
-    from app import models
     db_term = models.Term(**term.dict())
     db.add(db_term)
     db.commit()
@@ -471,7 +460,6 @@ def list_flashcards(
         "action": "list_flashcards",
         "filter_term_id": term_id
     })
-    from app import models
     query = db.query(models.Flashcard)
     if term_id:
         query = query.filter(models.Flashcard.term_id == term_id)
@@ -500,7 +488,6 @@ def create_flashcard(
     # Проверка существования термина
     get_term_or_404(db, flashcard.term_id)
     # Убедимся, что для этого термина ещё нет карточки (уникальность term_id)
-    from app import models
     existing = db.query(models.Flashcard).filter(models.Flashcard.term_id == flashcard.term_id).first()
     if existing:
         logger.warning("Flashcard already exists for term", extra={
@@ -541,7 +528,6 @@ def update_flashcard(
     if "term_id" in update_data and update_data["term_id"] is not None:
         # Проверяем новый term_id и уникальность
         get_term_or_404(db, update_data["term_id"])
-        from app import models
         existing = db.query(models.Flashcard).filter(
             models.Flashcard.term_id == update_data["term_id"],
             models.Flashcard.id != flashcard_id
@@ -607,7 +593,6 @@ def list_quizzes(
         "action": "list_quizzes",
         "filter_topic_id": topic_id
     })
-    from app import models
     query = db.query(models.Quiz).options(
         joinedload(models.Quiz.topic).joinedload(models.Topic.domain)
     )
@@ -649,7 +634,6 @@ def create_quiz(
     })
     # Проверка темы
     get_topic_or_404(db, quiz.topic_id)
-    from app import models
     db_quiz = models.Quiz(**quiz.dict())
     db.add(db_quiz)
     db.commit()
@@ -730,7 +714,6 @@ def list_questions(
         "action": "list_questions",
         "filter_quiz_id": quiz_id
     })
-    from app import models
     query = db.query(models.Question)
     if quiz_id:
         query = query.filter(models.Question.quiz_id == quiz_id)
@@ -755,11 +738,10 @@ def create_question(
         "user_email": current_user.email,
         "action": "create_question",
         "quiz_id": question.quiz_id,
-        "question_text": question.text[:50]  # обрезаем для краткости
+        "question_text": question.text[:50]
     })
     # Проверка квиза
     get_quiz_or_404(db, question.quiz_id)
-    from app import models
     db_question = models.Question(**question.dict())
     db.add(db_question)
     db.commit()
@@ -824,6 +806,115 @@ def delete_question(
         "question_id": question_id
     })
     return
+
+
+# ---------- Экспертное добавление термина с вопросами ----------
+@terms_router.post("/with-questions", response_model=schemas.TermWithQuestions, status_code=status.HTTP_201_CREATED)
+def create_term_with_questions(
+    payload: schemas.ExpertTermCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """
+    Создаёт термин, карточку, квиз и вопросы.
+    Все созданные объекты привязываются к документу "Вопросы от эксперта".
+    """
+    logger.info("Creating term with questions (expert mode)", extra={
+        "user_email": current_user.email,
+        "term": payload.term,
+        "domain_id": payload.domain_id,
+        "questions_count": len(payload.questions)
+    })
+
+    # 1. Проверяем домен и тему
+    domain = get_domain_or_404(db, payload.domain_id)
+    # Если тема не указана, используем тему "Общая" для этого домена
+    topic_id = payload.topic_id
+    if topic_id is None:
+        from app.utils.helpers import get_or_create_general_topic
+        topic = get_or_create_general_topic(db, domain.name, domain.id)
+        topic_id = topic.id
+        logger.debug(f"Using general topic (id={topic_id}) for domain {domain.name}")
+
+    # 2. Находим или создаём документ "Вопросы от эксперта"
+    expert_doc = db.query(models.Document).filter(
+        models.Document.filename == "Вопросы от эксперта.txt"
+    ).first()
+    if not expert_doc:
+        expert_doc = models.Document(
+            filename="Вопросы от эксперта.txt",
+            domain=domain.name,
+            topic_id=topic_id,
+            content="Экспертные вопросы, добавленные вручную",
+            processed=True
+        )
+        db.add(expert_doc)
+        db.flush()
+        logger.info(f"Created expert document with id {expert_doc.id}")
+
+    # 3. Создаём термин
+    term_data = payload.dict(exclude={"questions"})
+    term = models.Term(
+        **term_data,
+        source_document=expert_doc.filename,
+        source_fragment=None
+    )
+    db.add(term)
+    db.flush()
+    logger.info(f"Term created with id {term.id}")
+
+    # 4. Создаём карточку
+    flashcard = models.Flashcard(
+        term_id=term.id,
+        simplified_definition=term.definition,
+        hint=None
+    )
+    db.add(flashcard)
+    db.flush()
+    logger.debug(f"Flashcard created for term {term.id}")
+
+    # 5. Создаём квиз для этого термина
+    quiz = models.Quiz(
+        title=f"Экспертные вопросы: {term.term}",
+        topic_id=topic_id
+    )
+    db.add(quiz)
+    db.flush()
+    logger.debug(f"Quiz created with id {quiz.id} for term {term.id}")
+
+    # 6. Создаём вопросы
+    for q_data in payload.questions:
+        question = models.Question(
+            quiz_id=quiz.id,
+            term_id=term.id,
+            text=q_data.question,
+            type="single",
+            options=q_data.options,
+            correct_answer=q_data.correct,
+            explanation=q_data.explanation
+        )
+        db.add(question)
+    logger.info(f"Added {len(payload.questions)} questions for term {term.id}")
+
+    db.commit()
+    db.refresh(term)
+
+    # Формируем ответ с вопросами
+    questions_out = [
+        schemas.QuestionOut.from_orm(q) for q in db.query(models.Question)
+        .filter(models.Question.term_id == term.id).all()
+    ]
+    term_out = schemas.TermOut.from_orm(term)
+    result = schemas.TermWithQuestions(
+        **term_out.dict(),
+        questions=questions_out
+    )
+
+    logger.info("Term with questions created successfully", extra={
+        "term_id": term.id,
+        "quiz_id": quiz.id
+    })
+    return result
 
 
 # ---------- Объединение всех роутеров в один для удобного подключения ----------

@@ -556,4 +556,21 @@ class TableDataResponse(BaseModel):
 
 class TopicDescribeRequest(BaseModel):
     domain: str
-    topic_name: str      
+    topic_name: str     
+    
+# ---------- Схемы для экспертного добавления термина с вопросами ----------
+class ExpertQuestionCreate(BaseModel):
+    question: str
+    options: List[str] = Field(..., min_items=2, max_items=4)
+    correct: int = Field(..., ge=0, le=3)
+    explanation: Optional[str] = None
+
+class ExpertTermCreate(BaseModel):
+    term: str
+    definition: str
+    example: Optional[str] = None
+    mnemonic: Optional[str] = None
+    image_url: Optional[str] = None
+    domain_id: int
+    topic_id: Optional[int] = None
+    questions: List[ExpertQuestionCreate] = Field(..., min_items=1)    
