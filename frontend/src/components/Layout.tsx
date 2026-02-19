@@ -1,14 +1,16 @@
 // frontend/src/components/Layout.tsx
 // Общий макет с навигацией и выходом
 // Добавлено подменю "Кабинет методиста" для административных ссылок
+// Исправлено: меню закрывается при клике вне компонента, а не при уходе мыши
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
   const userEmail = localStorage.getItem('userEmail');
   const [isMethodistMenuOpen, setIsMethodistMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     localStorage.removeItem('userEmail');
@@ -22,6 +24,17 @@ const Layout: React.FC = () => {
   const closeMethodistMenu = () => {
     setIsMethodistMenuOpen(false);
   };
+
+  // Закрываем меню при клике вне его области
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        closeMethodistMenu();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,7 +61,7 @@ const Layout: React.FC = () => {
                 </Link>
 
                 {/* Кабинет методиста (выпадающее меню) */}
-                <div className="relative inline-flex items-center">
+                <div className="relative inline-flex items-center" ref={menuRef}>
                   <button
                     onClick={toggleMethodistMenu}
                     className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-indigo-600 focus:outline-none"
@@ -66,7 +79,6 @@ const Layout: React.FC = () => {
                   {isMethodistMenuOpen && (
                     <div
                       className="absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 z-50"
-                      onMouseLeave={closeMethodistMenu}
                     >
                       <Link
                         to="/admin/upload"
@@ -117,7 +129,7 @@ const Layout: React.FC = () => {
                         onClick={closeMethodistMenu}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
                       >
-                      Просмотр БД
+                        Просмотр БД
                       </Link>                 
                       <Link
                         to="admin/reset"

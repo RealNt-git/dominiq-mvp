@@ -281,7 +281,7 @@ const TermManager: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-full mx-auto px-4"> 
         <div className="mb-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">Управление терминами и вопросами</h1>
           <div className="flex gap-2">
