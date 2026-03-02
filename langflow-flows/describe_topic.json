@@ -1,0 +1,1576 @@
+{
+  "data": {
+    "edges": [
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "Prompt Template",
+            "id": "Prompt Template-fd8Nd",
+            "name": "prompt",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "OllamaModel-9RdU7",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__Prompt Template-fd8Nd{œdataTypeœ:œPrompt Templateœ,œidœ:œPrompt Template-fd8Ndœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}-OllamaModel-9RdU7{œfieldNameœ:œinput_valueœ,œidœ:œOllamaModel-9RdU7œ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "Prompt Template-fd8Nd",
+        "sourceHandle": "{œdataTypeœ:œPrompt Templateœ,œidœ:œPrompt Template-fd8Ndœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "OllamaModel-9RdU7",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œOllamaModel-9RdU7œ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "OllamaModel",
+            "id": "OllamaModel-9RdU7",
+            "name": "text_output",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "TextOutput-fZJzr",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__OllamaModel-9RdU7{œdataTypeœ:œOllamaModelœ,œidœ:œOllamaModel-9RdU7œ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}-TextOutput-fZJzr{œfieldNameœ:œinput_valueœ,œidœ:œTextOutput-fZJzrœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "OllamaModel-9RdU7",
+        "sourceHandle": "{œdataTypeœ:œOllamaModelœ,œidœ:œOllamaModel-9RdU7œ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "TextOutput-fZJzr",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œTextOutput-fZJzrœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "TextInput",
+            "id": "TextInput-w1tvP",
+            "name": "text",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "domain",
+            "id": "Prompt Template-fd8Nd",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__TextInput-w1tvP{œdataTypeœ:œTextInputœ,œidœ:œTextInput-w1tvPœ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}-Prompt Template-fd8Nd{œfieldNameœ:œdomainœ,œidœ:œPrompt Template-fd8Ndœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "TextInput-w1tvP",
+        "sourceHandle": "{œdataTypeœ:œTextInputœ,œidœ:œTextInput-w1tvPœ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "Prompt Template-fd8Nd",
+        "targetHandle": "{œfieldNameœ:œdomainœ,œidœ:œPrompt Template-fd8Ndœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "TextInput",
+            "id": "TextInput-BJLI6",
+            "name": "text",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "topic_name",
+            "id": "Prompt Template-fd8Nd",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__TextInput-BJLI6{œdataTypeœ:œTextInputœ,œidœ:œTextInput-BJLI6œ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}-Prompt Template-fd8Nd{œfieldNameœ:œtopic_nameœ,œidœ:œPrompt Template-fd8Ndœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "TextInput-BJLI6",
+        "sourceHandle": "{œdataTypeœ:œTextInputœ,œidœ:œTextInput-BJLI6œ,œnameœ:œtextœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "Prompt Template-fd8Nd",
+        "targetHandle": "{œfieldNameœ:œtopic_nameœ,œidœ:œPrompt Template-fd8Ndœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      }
+    ],
+    "nodes": [
+      {
+        "data": {
+          "id": "TextInput-w1tvP",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Get user text inputs.",
+            "display_name": "domain",
+            "documentation": "https://docs.langflow.org/text-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value"
+            ],
+            "frozen": false,
+            "icon": "type",
+            "legacy": false,
+            "lf_version": "1.7.3",
+            "metadata": {
+              "code_hash": "3d80f125b734",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": "0.2.2"
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.input_output.text.TextInputComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Output Text",
+                "group_outputs": false,
+                "method": "text_response",
+                "name": "text",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.base.io.text import TextComponent\nfrom lfx.io import MultilineInput, Output\nfrom lfx.schema.message import Message\n\n\nclass TextInputComponent(TextComponent):\n    display_name = \"Text Input\"\n    description = \"Get user text inputs.\"\n    documentation: str = \"https://docs.langflow.org/text-input-and-output\"\n    icon = \"type\"\n    name = \"TextInput\"\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Text\",\n            info=\"Text to be passed as input.\",\n        ),\n    ]\n    outputs = [\n        Output(display_name=\"Output Text\", name=\"text\", method=\"text_response\"),\n    ]\n\n    def text_response(self) -> Message:\n        return Message(\n            text=self.input_value,\n        )\n"
+              },
+              "input_value": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "Text",
+                "dynamic": false,
+                "info": "Text to be passed as input.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "TextInput"
+        },
+        "dragging": false,
+        "id": "TextInput-w1tvP",
+        "measured": {
+          "height": 203,
+          "width": 320
+        },
+        "position": {
+          "x": 55.97321939233987,
+          "y": 100.07522444948572
+        },
+        "selected": true,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "Prompt Template-fd8Nd",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {
+              "template": [
+                "domain",
+                "topic_name"
+              ]
+            },
+            "description": "Create a prompt template with dynamic variables.",
+            "display_name": "Prompt-describe",
+            "documentation": "https://docs.langflow.org/components-prompts",
+            "edited": false,
+            "error": null,
+            "field_order": [
+              "template",
+              "tool_placeholder"
+            ],
+            "frozen": false,
+            "full_path": null,
+            "icon": "braces",
+            "is_composition": null,
+            "is_input": null,
+            "is_output": null,
+            "legacy": false,
+            "lf_version": "1.7.3",
+            "metadata": {
+              "code_hash": "7382d03ce412",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": "0.2.2"
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.models_and_agents.prompt.PromptComponent"
+            },
+            "minimized": false,
+            "name": "",
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Prompt",
+                "group_outputs": false,
+                "hidden": null,
+                "loop_types": null,
+                "method": "build_prompt",
+                "name": "prompt",
+                "options": null,
+                "required_inputs": null,
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "priority": 0,
+            "replacement": null,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.base.prompts.api_utils import process_prompt_template\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import DefaultPromptField\nfrom lfx.io import MessageTextInput, Output, PromptInput\nfrom lfx.schema.message import Message\nfrom lfx.template.utils import update_template_values\n\n\nclass PromptComponent(Component):\n    display_name: str = \"Prompt Template\"\n    description: str = \"Create a prompt template with dynamic variables.\"\n    documentation: str = \"https://docs.langflow.org/components-prompts\"\n    icon = \"braces\"\n    trace_type = \"prompt\"\n    name = \"Prompt Template\"\n    priority = 0  # Set priority to 0 to make it appear first\n\n    inputs = [\n        PromptInput(name=\"template\", display_name=\"Template\"),\n        MessageTextInput(\n            name=\"tool_placeholder\",\n            display_name=\"Tool Placeholder\",\n            tool_mode=True,\n            advanced=True,\n            info=\"A placeholder input for tool mode.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Prompt\", name=\"prompt\", method=\"build_prompt\"),\n    ]\n\n    async def build_prompt(self) -> Message:\n        prompt = Message.from_template(**self._attributes)\n        self.status = prompt.text\n        return prompt\n\n    def _update_template(self, frontend_node: dict):\n        prompt_template = frontend_node[\"template\"][\"template\"][\"value\"]\n        custom_fields = frontend_node[\"custom_fields\"]\n        frontend_node_template = frontend_node[\"template\"]\n        _ = process_prompt_template(\n            template=prompt_template,\n            name=\"template\",\n            custom_fields=custom_fields,\n            frontend_node_template=frontend_node_template,\n        )\n        return frontend_node\n\n    async def update_frontend_node(self, new_frontend_node: dict, current_frontend_node: dict):\n        \"\"\"This function is called after the code validation is done.\"\"\"\n        frontend_node = await super().update_frontend_node(new_frontend_node, current_frontend_node)\n        template = frontend_node[\"template\"][\"template\"][\"value\"]\n        # Kept it duplicated for backwards compatibility\n        _ = process_prompt_template(\n            template=template,\n            name=\"template\",\n            custom_fields=frontend_node[\"custom_fields\"],\n            frontend_node_template=frontend_node[\"template\"],\n        )\n        # Now that template is updated, we need to grab any values that were set in the current_frontend_node\n        # and update the frontend_node with those values\n        update_template_values(new_template=frontend_node, previous_template=current_frontend_node[\"template\"])\n        return frontend_node\n\n    def _get_fallback_input(self, **kwargs):\n        return DefaultPromptField(**kwargs)\n"
+              },
+              "domain": {
+                "advanced": false,
+                "display_name": "domain",
+                "dynamic": false,
+                "field_type": "str",
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "domain",
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "type": "str",
+                "value": ""
+              },
+              "template": {
+                "_input_type": "PromptInput",
+                "advanced": false,
+                "display_name": "Template",
+                "dynamic": false,
+                "info": "",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "template",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "track_in_telemetry": false,
+                "type": "prompt",
+                "value": "Ты — эксперт в области {domain}. Напиши краткое описание (не более 500 символов) для темы \"{topic_name}\" для аналитика.\nОпиши, что это такое, в каких бизнес-процессах применяется, приведи пример.\nТвой ответ должен содержать только описание, без каких-либо дополнительных фраз, комментариев или повторения задания.\nНачинай сразу с текста описания."
+              },
+              "tool_placeholder": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Tool Placeholder",
+                "dynamic": false,
+                "info": "A placeholder input for tool mode.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "tool_placeholder",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": true,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "topic_name": {
+                "advanced": false,
+                "display_name": "topic_name",
+                "dynamic": false,
+                "field_type": "str",
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "topic_name",
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "type": "str",
+                "value": ""
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "Prompt Template"
+        },
+        "dragging": false,
+        "id": "Prompt Template-fd8Nd",
+        "measured": {
+          "height": 448,
+          "width": 320
+        },
+        "position": {
+          "x": 512.1626813795415,
+          "y": 94.38702647817718
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "TextOutput-fZJzr",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Sends text output via API.",
+            "display_name": "Output-describe",
+            "documentation": "https://docs.langflow.org/text-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value"
+            ],
+            "frozen": false,
+            "icon": "type",
+            "legacy": false,
+            "lf_version": "1.7.3",
+            "metadata": {
+              "code_hash": "6aba888f4632",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": "0.2.2"
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.input_output.text_output.TextOutputComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Output Text",
+                "group_outputs": false,
+                "method": "text_response",
+                "name": "text",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.base.io.text import TextComponent\nfrom lfx.io import MultilineInput, Output\nfrom lfx.schema.message import Message\n\n\nclass TextOutputComponent(TextComponent):\n    display_name = \"Text Output\"\n    description = \"Sends text output via API.\"\n    documentation: str = \"https://docs.langflow.org/text-input-and-output\"\n    icon = \"type\"\n    name = \"TextOutput\"\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Inputs\",\n            info=\"Text to be passed as output.\",\n        ),\n    ]\n    outputs = [\n        Output(display_name=\"Output Text\", name=\"text\", method=\"text_response\"),\n    ]\n\n    def text_response(self) -> Message:\n        message = Message(\n            text=self.input_value,\n        )\n        self.status = self.input_value\n        return message\n"
+              },
+              "input_value": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "Inputs",
+                "dynamic": false,
+                "info": "Text to be passed as output.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "TextOutput"
+        },
+        "dragging": false,
+        "id": "TextOutput-fZJzr",
+        "measured": {
+          "height": 203,
+          "width": 320
+        },
+        "position": {
+          "x": 1409.1182759716323,
+          "y": 188.41065605721727
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "OllamaModel-9RdU7",
+          "node": {
+            "base_classes": [
+              "Data",
+              "DataFrame",
+              "LanguageModel",
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Generate text using Ollama Local LLMs.",
+            "display_name": "Ollama-describe",
+            "documentation": "",
+            "edited": false,
+            "field_order": [
+              "base_url",
+              "model_name",
+              "api_key",
+              "temperature",
+              "format",
+              "metadata",
+              "mirostat",
+              "mirostat_eta",
+              "mirostat_tau",
+              "num_ctx",
+              "num_gpu",
+              "num_thread",
+              "repeat_last_n",
+              "repeat_penalty",
+              "tfs_z",
+              "timeout",
+              "top_k",
+              "top_p",
+              "enable_verbose_output",
+              "tags",
+              "stop_tokens",
+              "system",
+              "tool_model_enabled",
+              "template",
+              "enable_structured_output",
+              "input_value",
+              "system_message",
+              "stream"
+            ],
+            "frozen": false,
+            "icon": "Ollama",
+            "last_updated": "2026-02-26T20:19:18.307Z",
+            "legacy": false,
+            "lf_version": "1.7.3",
+            "metadata": {
+              "code_hash": "12e5c1954fe1",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "httpx",
+                    "version": "0.28.1"
+                  },
+                  {
+                    "name": "langchain_ollama",
+                    "version": "0.3.10"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": "0.2.2"
+                  }
+                ],
+                "total_dependencies": 3
+              },
+              "keywords": [
+                "model",
+                "llm",
+                "language model",
+                "large language model"
+              ],
+              "module": "lfx.components.ollama.ollama.ChatOllamaComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Text",
+                "group_outputs": false,
+                "loop_types": null,
+                "method": "text_response",
+                "name": "text_output",
+                "options": null,
+                "required_inputs": null,
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              },
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Language Model",
+                "group_outputs": false,
+                "loop_types": null,
+                "method": "build_model",
+                "name": "model_output",
+                "options": null,
+                "required_inputs": null,
+                "selected": "LanguageModel",
+                "tool_mode": true,
+                "types": [
+                  "LanguageModel"
+                ],
+                "value": "__UNDEFINED__"
+              },
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Data",
+                "group_outputs": false,
+                "loop_types": null,
+                "method": "build_data_output",
+                "name": "data_output",
+                "options": null,
+                "required_inputs": null,
+                "selected": "Data",
+                "tool_mode": true,
+                "types": [
+                  "Data"
+                ],
+                "value": "__UNDEFINED__"
+              },
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "DataFrame",
+                "group_outputs": false,
+                "loop_types": null,
+                "method": "build_dataframe_output",
+                "name": "dataframe_output",
+                "options": null,
+                "required_inputs": null,
+                "selected": "DataFrame",
+                "tool_mode": true,
+                "types": [
+                  "DataFrame"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_frontend_node_flow_id": {
+                "value": "cdf0dc55-2c7a-4354-b768-13a723c0cdcb"
+              },
+              "_frontend_node_folder_id": {
+                "value": "279b0d0f-ab46-4558-be21-9c4d3bdd6602"
+              },
+              "_type": "Component",
+              "api_key": {
+                "_input_type": "SecretStrInput",
+                "advanced": true,
+                "display_name": "Ollama API Key",
+                "dynamic": false,
+                "info": "Your Ollama API key.",
+                "input_types": [],
+                "load_from_db": false,
+                "name": "api_key",
+                "override_skip": false,
+                "password": true,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "base_url": {
+                "_input_type": "MessageTextInput",
+                "advanced": false,
+                "display_name": "Ollama API URL",
+                "dynamic": false,
+                "info": "Endpoint of the Ollama API. Defaults to http://localhost:11434.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "base_url",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "http://localhost:11434"
+              },
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "import asyncio\nimport json\nfrom contextlib import suppress\nfrom typing import Any\nfrom urllib.parse import urljoin\n\nimport httpx\nfrom langchain_ollama import ChatOllama\n\nfrom lfx.base.models.model import LCModelComponent\nfrom lfx.field_typing import LanguageModel\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.helpers.base_model import build_model_from_schema\nfrom lfx.io import (\n    BoolInput,\n    DictInput,\n    DropdownInput,\n    FloatInput,\n    IntInput,\n    MessageTextInput,\n    Output,\n    SecretStrInput,\n    SliderInput,\n    TableInput,\n)\nfrom lfx.log.logger import logger\nfrom lfx.schema.data import Data\nfrom lfx.schema.dataframe import DataFrame\nfrom lfx.schema.table import EditMode\nfrom lfx.utils.util import transform_localhost_url\n\nHTTP_STATUS_OK = 200\nTABLE_ROW_PLACEHOLDER = {\"name\": \"field\", \"description\": \"description of field\", \"type\": \"str\", \"multiple\": \"False\"}\n\n\nclass ChatOllamaComponent(LCModelComponent):\n    display_name = \"Ollama\"\n    description = \"Generate text using Ollama Local LLMs.\"\n    icon = \"Ollama\"\n    name = \"OllamaModel\"\n\n    # Define constants for JSON keys\n    JSON_MODELS_KEY = \"models\"\n    JSON_NAME_KEY = \"name\"\n    JSON_CAPABILITIES_KEY = \"capabilities\"\n    DESIRED_CAPABILITY = \"completion\"\n    TOOL_CALLING_CAPABILITY = \"tools\"\n\n    # Define the table schema for the format input\n    TABLE_SCHEMA = [\n        {\n            \"name\": \"name\",\n            \"display_name\": \"Name\",\n            \"type\": \"str\",\n            \"description\": \"Specify the name of the output field.\",\n            \"default\": \"field\",\n            \"edit_mode\": EditMode.INLINE,\n        },\n        {\n            \"name\": \"description\",\n            \"display_name\": \"Description\",\n            \"type\": \"str\",\n            \"description\": \"Describe the purpose of the output field.\",\n            \"default\": \"description of field\",\n            \"edit_mode\": EditMode.POPOVER,\n        },\n        {\n            \"name\": \"type\",\n            \"display_name\": \"Type\",\n            \"type\": \"str\",\n            \"edit_mode\": EditMode.INLINE,\n            \"description\": (\"Indicate the data type of the output field (e.g., str, int, float, bool, dict).\"),\n            \"options\": [\"str\", \"int\", \"float\", \"bool\", \"dict\"],\n            \"default\": \"str\",\n        },\n        {\n            \"name\": \"multiple\",\n            \"display_name\": \"As List\",\n            \"type\": \"boolean\",\n            \"description\": \"Set to True if this output field should be a list of the specified type.\",\n            \"edit_mode\": EditMode.INLINE,\n            \"options\": [\"True\", \"False\"],\n            \"default\": \"False\",\n        },\n    ]\n    default_table_row = {row[\"name\"]: row.get(\"default\", None) for row in TABLE_SCHEMA}\n    default_table_row_schema = build_model_from_schema([default_table_row]).model_json_schema()\n\n    inputs = [\n        MessageTextInput(\n            name=\"base_url\",\n            display_name=\"Ollama API URL\",\n            info=\"Endpoint of the Ollama API. Defaults to http://localhost:11434.\",\n            value=\"http://localhost:11434\",\n            real_time_refresh=True,\n        ),\n        DropdownInput(\n            name=\"model_name\",\n            display_name=\"Model Name\",\n            options=[],\n            info=\"Refer to https://ollama.com/library for more models.\",\n            refresh_button=True,\n            real_time_refresh=True,\n            required=True,\n        ),\n        SecretStrInput(\n            name=\"api_key\",\n            display_name=\"Ollama API Key\",\n            info=\"Your Ollama API key.\",\n            value=None,\n            required=False,\n            real_time_refresh=True,\n            advanced=True,\n        ),\n        SliderInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            value=0.1,\n            range_spec=RangeSpec(min=0, max=1, step=0.01),\n            advanced=True,\n        ),\n        TableInput(\n            name=\"format\",\n            display_name=\"Format\",\n            info=\"Specify the format of the output.\",\n            table_schema=TABLE_SCHEMA,\n            value=default_table_row,\n            show=False,\n        ),\n        DictInput(name=\"metadata\", display_name=\"Metadata\", info=\"Metadata to add to the run trace.\", advanced=True),\n        DropdownInput(\n            name=\"mirostat\",\n            display_name=\"Mirostat\",\n            options=[\"Disabled\", \"Mirostat\", \"Mirostat 2.0\"],\n            info=\"Enable/disable Mirostat sampling for controlling perplexity.\",\n            value=\"Disabled\",\n            advanced=True,\n            real_time_refresh=True,\n        ),\n        FloatInput(\n            name=\"mirostat_eta\",\n            display_name=\"Mirostat Eta\",\n            info=\"Learning rate for Mirostat algorithm. (Default: 0.1)\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"mirostat_tau\",\n            display_name=\"Mirostat Tau\",\n            info=\"Controls the balance between coherence and diversity of the output. (Default: 5.0)\",\n            advanced=True,\n        ),\n        IntInput(\n            name=\"num_ctx\",\n            display_name=\"Context Window Size\",\n            info=\"Size of the context window for generating tokens. (Default: 2048)\",\n            advanced=True,\n        ),\n        IntInput(\n            name=\"num_gpu\",\n            display_name=\"Number of GPUs\",\n            info=\"Number of GPUs to use for computation. (Default: 1 on macOS, 0 to disable)\",\n            advanced=True,\n        ),\n        IntInput(\n            name=\"num_thread\",\n            display_name=\"Number of Threads\",\n            info=\"Number of threads to use during computation. (Default: detected for optimal performance)\",\n            advanced=True,\n        ),\n        IntInput(\n            name=\"repeat_last_n\",\n            display_name=\"Repeat Last N\",\n            info=\"How far back the model looks to prevent repetition. (Default: 64, 0 = disabled, -1 = num_ctx)\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"repeat_penalty\",\n            display_name=\"Repeat Penalty\",\n            info=\"Penalty for repetitions in generated text. (Default: 1.1)\",\n            advanced=True,\n        ),\n        FloatInput(name=\"tfs_z\", display_name=\"TFS Z\", info=\"Tail free sampling value. (Default: 1)\", advanced=True),\n        IntInput(name=\"timeout\", display_name=\"Timeout\", info=\"Timeout for the request stream.\", advanced=True),\n        IntInput(\n            name=\"top_k\", display_name=\"Top K\", info=\"Limits token selection to top K. (Default: 40)\", advanced=True\n        ),\n        FloatInput(name=\"top_p\", display_name=\"Top P\", info=\"Works together with top-k. (Default: 0.9)\", advanced=True),\n        BoolInput(\n            name=\"enable_verbose_output\",\n            display_name=\"Ollama Verbose Output\",\n            info=\"Whether to print out response text.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"tags\",\n            display_name=\"Tags\",\n            info=\"Comma-separated list of tags to add to the run trace.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"stop_tokens\",\n            display_name=\"Stop Tokens\",\n            info=\"Comma-separated list of tokens to signal the model to stop generating text.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"system\", display_name=\"System\", info=\"System to use for generating text.\", advanced=True\n        ),\n        BoolInput(\n            name=\"tool_model_enabled\",\n            display_name=\"Tool Model Enabled\",\n            info=\"Whether to enable tool calling in the model.\",\n            value=True,\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"template\", display_name=\"Template\", info=\"Template to use for generating text.\", advanced=True\n        ),\n        BoolInput(\n            name=\"enable_structured_output\",\n            display_name=\"Enable Structured Output\",\n            info=\"Whether to enable structured output in the model.\",\n            value=False,\n            advanced=False,\n            real_time_refresh=True,\n        ),\n        *LCModelComponent.get_base_inputs(),\n    ]\n\n    outputs = [\n        Output(display_name=\"Text\", name=\"text_output\", method=\"text_response\"),\n        Output(display_name=\"Language Model\", name=\"model_output\", method=\"build_model\"),\n        Output(display_name=\"Data\", name=\"data_output\", method=\"build_data_output\"),\n        Output(display_name=\"DataFrame\", name=\"dataframe_output\", method=\"build_dataframe_output\"),\n    ]\n\n    def build_model(self) -> LanguageModel:  # type: ignore[type-var]\n        # Mapping mirostat settings to their corresponding values\n        mirostat_options = {\"Mirostat\": 1, \"Mirostat 2.0\": 2}\n\n        # Default to None for 'Disabled'\n        mirostat_value = mirostat_options.get(self.mirostat, None)\n\n        # Set mirostat_eta and mirostat_tau to None if mirostat is disabled\n        if mirostat_value is None:\n            mirostat_eta = None\n            mirostat_tau = None\n        else:\n            mirostat_eta = self.mirostat_eta\n            mirostat_tau = self.mirostat_tau\n\n        transformed_base_url = transform_localhost_url(self.base_url)\n\n        # Check if URL contains /v1 suffix (OpenAI-compatible mode)\n        if transformed_base_url and transformed_base_url.rstrip(\"/\").endswith(\"/v1\"):\n            # Strip /v1 suffix and log warning\n            transformed_base_url = transformed_base_url.rstrip(\"/\").removesuffix(\"/v1\")\n            logger.warning(\n                \"Detected '/v1' suffix in base URL. The Ollama component uses the native Ollama API, \"\n                \"not the OpenAI-compatible API. The '/v1' suffix has been automatically removed. \"\n                \"If you want to use the OpenAI-compatible API, please use the OpenAI component instead. \"\n                \"Learn more at https://docs.ollama.com/openai#openai-compatibility\"\n            )\n\n        try:\n            output_format = self._parse_format_field(self.format) if self.enable_structured_output else None\n        except Exception as e:\n            msg = f\"Failed to parse the format field: {e}\"\n            raise ValueError(msg) from e\n\n        # Mapping system settings to their corresponding values\n        llm_params = {\n            \"base_url\": transformed_base_url,\n            \"model\": self.model_name,\n            \"mirostat\": mirostat_value,\n            \"format\": output_format or None,\n            \"metadata\": self.metadata,\n            \"tags\": self.tags.split(\",\") if self.tags else None,\n            \"mirostat_eta\": mirostat_eta,\n            \"mirostat_tau\": mirostat_tau,\n            \"num_ctx\": self.num_ctx or None,\n            \"num_gpu\": self.num_gpu or None,\n            \"num_thread\": self.num_thread or None,\n            \"repeat_last_n\": self.repeat_last_n or None,\n            \"repeat_penalty\": self.repeat_penalty or None,\n            \"temperature\": self.temperature or None,\n            \"stop\": self.stop_tokens.split(\",\") if self.stop_tokens else None,\n            \"system\": self.system,\n            \"tfs_z\": self.tfs_z or None,\n            \"timeout\": self.timeout or None,\n            \"top_k\": self.top_k or None,\n            \"top_p\": self.top_p or None,\n            \"verbose\": self.enable_verbose_output or False,\n            \"template\": self.template,\n        }\n        headers = self.headers\n        if headers is not None:\n            llm_params[\"client_kwargs\"] = {\"headers\": headers}\n\n        # Remove parameters with None values\n        llm_params = {k: v for k, v in llm_params.items() if v is not None}\n\n        try:\n            output = ChatOllama(**llm_params)\n        except Exception as e:\n            msg = (\n                \"Unable to connect to the Ollama API. \"\n                \"Please verify the base URL, ensure the relevant Ollama model is pulled, and try again.\"\n            )\n            raise ValueError(msg) from e\n\n        return output\n\n    async def is_valid_ollama_url(self, url: str) -> bool:\n        try:\n            async with httpx.AsyncClient() as client:\n                url = transform_localhost_url(url)\n                if not url:\n                    return False\n                # Strip /v1 suffix if present, as Ollama API endpoints are at root level\n                url = url.rstrip(\"/\").removesuffix(\"/v1\")\n                if not url.endswith(\"/\"):\n                    url = url + \"/\"\n                return (\n                    await client.get(url=urljoin(url, \"api/tags\"), headers=self.headers)\n                ).status_code == HTTP_STATUS_OK\n        except httpx.RequestError:\n            return False\n\n    async def update_build_config(self, build_config: dict, field_value: Any, field_name: str | None = None):\n        if field_name == \"enable_structured_output\":  # bind enable_structured_output boolean to format show value\n            build_config[\"format\"][\"show\"] = field_value\n\n        if field_name == \"mirostat\":\n            if field_value == \"Disabled\":\n                build_config[\"mirostat_eta\"][\"advanced\"] = True\n                build_config[\"mirostat_tau\"][\"advanced\"] = True\n                build_config[\"mirostat_eta\"][\"value\"] = None\n                build_config[\"mirostat_tau\"][\"value\"] = None\n\n            else:\n                build_config[\"mirostat_eta\"][\"advanced\"] = False\n                build_config[\"mirostat_tau\"][\"advanced\"] = False\n\n                if field_value == \"Mirostat 2.0\":\n                    build_config[\"mirostat_eta\"][\"value\"] = 0.2\n                    build_config[\"mirostat_tau\"][\"value\"] = 10\n                else:\n                    build_config[\"mirostat_eta\"][\"value\"] = 0.1\n                    build_config[\"mirostat_tau\"][\"value\"] = 5\n\n        if field_name in {\"model_name\", \"base_url\", \"tool_model_enabled\"}:\n            # Use field_value if base_url is being updated, otherwise use self.base_url\n            base_url_to_check = field_value if field_name == \"base_url\" else self.base_url\n            # Fallback to self.base_url if field_value is None or empty\n            if not base_url_to_check and field_name == \"base_url\":\n                base_url_to_check = self.base_url\n            logger.warning(f\"Fetching Ollama models from updated URL: {base_url_to_check}\")\n\n            if base_url_to_check and await self.is_valid_ollama_url(base_url_to_check):\n                tool_model_enabled = build_config[\"tool_model_enabled\"].get(\"value\", False) or self.tool_model_enabled\n                build_config[\"model_name\"][\"options\"] = await self.get_models(\n                    base_url_to_check, tool_model_enabled=tool_model_enabled\n                )\n            else:\n                build_config[\"model_name\"][\"options\"] = []\n        if field_name == \"keep_alive_flag\":\n            if field_value == \"Keep\":\n                build_config[\"keep_alive\"][\"value\"] = \"-1\"\n                build_config[\"keep_alive\"][\"advanced\"] = True\n            elif field_value == \"Immediately\":\n                build_config[\"keep_alive\"][\"value\"] = \"0\"\n                build_config[\"keep_alive\"][\"advanced\"] = True\n            else:\n                build_config[\"keep_alive\"][\"advanced\"] = False\n\n        return build_config\n\n    async def get_models(self, base_url_value: str, *, tool_model_enabled: bool | None = None) -> list[str]:\n        \"\"\"Fetches a list of models from the Ollama API that do not have the \"embedding\" capability.\n\n        Args:\n            base_url_value (str): The base URL of the Ollama API.\n            tool_model_enabled (bool | None, optional): If True, filters the models further to include\n                only those that support tool calling. Defaults to None.\n\n        Returns:\n            list[str]: A list of model names that do not have the \"embedding\" capability. If\n                `tool_model_enabled` is True, only models supporting tool calling are included.\n\n        Raises:\n            ValueError: If there is an issue with the API request or response, or if the model\n                names cannot be retrieved.\n        \"\"\"\n        try:\n            # Strip /v1 suffix if present, as Ollama API endpoints are at root level\n            base_url = base_url_value.rstrip(\"/\").removesuffix(\"/v1\")\n            if not base_url.endswith(\"/\"):\n                base_url = base_url + \"/\"\n            base_url = transform_localhost_url(base_url)\n\n            # Ollama REST API to return models\n            tags_url = urljoin(base_url, \"api/tags\")\n\n            # Ollama REST API to return model capabilities\n            show_url = urljoin(base_url, \"api/show\")\n\n            async with httpx.AsyncClient() as client:\n                headers = self.headers\n                # Fetch available models\n                tags_response = await client.get(url=tags_url, headers=headers)\n                tags_response.raise_for_status()\n                models = tags_response.json()\n                if asyncio.iscoroutine(models):\n                    models = await models\n                await logger.adebug(f\"Available models: {models}\")\n\n                # Filter models that are NOT embedding models\n                model_ids = []\n                for model in models[self.JSON_MODELS_KEY]:\n                    model_name = model[self.JSON_NAME_KEY]\n                    await logger.adebug(f\"Checking model: {model_name}\")\n\n                    payload = {\"model\": model_name}\n                    show_response = await client.post(url=show_url, json=payload, headers=headers)\n                    show_response.raise_for_status()\n                    json_data = show_response.json()\n                    if asyncio.iscoroutine(json_data):\n                        json_data = await json_data\n\n                    capabilities = json_data.get(self.JSON_CAPABILITIES_KEY, [])\n                    await logger.adebug(f\"Model: {model_name}, Capabilities: {capabilities}\")\n\n                    if self.DESIRED_CAPABILITY in capabilities and (\n                        not tool_model_enabled or self.TOOL_CALLING_CAPABILITY in capabilities\n                    ):\n                        model_ids.append(model_name)\n\n        except (httpx.RequestError, ValueError) as e:\n            msg = \"Could not get model names from Ollama.\"\n            raise ValueError(msg) from e\n\n        return model_ids\n\n    def _parse_format_field(self, format_value: Any) -> Any:\n        \"\"\"Parse the format field to handle both string and dict inputs.\n\n        The format field can be:\n        - A simple string like \"json\" (backward compatibility)\n        - A JSON string from NestedDictInput that needs parsing\n        - A dict/JSON schema (already parsed)\n        - None or empty\n\n        Args:\n            format_value: The raw format value from the input field\n\n        Returns:\n            Parsed format value as string, dict, or None\n        \"\"\"\n        if not format_value:\n            return None\n\n        schema = format_value\n        if isinstance(format_value, list):\n            schema = build_model_from_schema(format_value).model_json_schema()\n            if schema == self.default_table_row_schema:\n                return None  # the rows are generic placeholder rows\n        elif isinstance(format_value, str):  # parse as json if string\n            with suppress(json.JSONDecodeError):  # e.g., literal \"json\" is valid for format field\n                schema = json.loads(format_value)\n\n        return schema or None\n\n    async def _parse_json_response(self) -> Any:\n        \"\"\"Parse the JSON response from the model.\n\n        This method gets the text response and attempts to parse it as JSON.\n        Works with models that have format='json' or a JSON schema set.\n\n        Returns:\n            Parsed JSON (dict, list, or primitive type)\n\n        Raises:\n            ValueError: If the response is not valid JSON\n        \"\"\"\n        message = await self.text_response()\n        text = message.text if hasattr(message, \"text\") else str(message)\n\n        if not text:\n            msg = \"No response from model\"\n            raise ValueError(msg)\n\n        try:\n            return json.loads(text)\n        except json.JSONDecodeError as e:\n            msg = f\"Invalid JSON response. Ensure model supports JSON output. Error: {e}\"\n            raise ValueError(msg) from e\n\n    async def build_data_output(self) -> Data:\n        \"\"\"Build a Data output from the model's JSON response.\n\n        Returns:\n            Data: A Data object containing the parsed JSON response\n        \"\"\"\n        parsed = await self._parse_json_response()\n\n        # If the response is already a dict, wrap it in Data\n        if isinstance(parsed, dict):\n            return Data(data=parsed)\n\n        # If it's a list, wrap in a results container\n        if isinstance(parsed, list):\n            if len(parsed) == 1:\n                return Data(data=parsed[0])\n            return Data(data={\"results\": parsed})\n\n        # For primitive types, wrap in a value container\n        return Data(data={\"value\": parsed})\n\n    async def build_dataframe_output(self) -> DataFrame:\n        \"\"\"Build a DataFrame output from the model's JSON response.\n\n        Returns:\n            DataFrame: A DataFrame containing the parsed JSON response\n\n        Raises:\n            ValueError: If the response cannot be converted to a DataFrame\n        \"\"\"\n        parsed = await self._parse_json_response()\n\n        # If it's a list of dicts, convert directly to DataFrame\n        if isinstance(parsed, list):\n            if not parsed:\n                return DataFrame()\n            # Ensure all items are dicts for proper DataFrame conversion\n            if all(isinstance(item, dict) for item in parsed):\n                return DataFrame(parsed)\n            msg = \"List items must be dictionaries to convert to DataFrame\"\n            raise ValueError(msg)\n\n        # If it's a single dict, wrap in a list to create a single-row DataFrame\n        if isinstance(parsed, dict):\n            return DataFrame([parsed])\n\n        # For primitive types, create a single-column DataFrame\n        return DataFrame([{\"value\": parsed}])\n\n    @property\n    def headers(self) -> dict[str, str] | None:\n        \"\"\"Get the headers for the Ollama API.\"\"\"\n        if self.api_key and self.api_key.strip():\n            return {\"Authorization\": f\"Bearer {self.api_key}\"}\n        return None\n"
+              },
+              "enable_structured_output": {
+                "_input_type": "BoolInput",
+                "advanced": false,
+                "display_name": "Enable Structured Output",
+                "dynamic": false,
+                "info": "Whether to enable structured output in the model.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "enable_structured_output",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "enable_verbose_output": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Ollama Verbose Output",
+                "dynamic": false,
+                "info": "Whether to print out response text.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "enable_verbose_output",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "format": {
+                "_input_type": "TableInput",
+                "advanced": false,
+                "display_name": "Format",
+                "dynamic": false,
+                "info": "Specify the format of the output.",
+                "is_list": true,
+                "list_add_label": "Add More",
+                "name": "format",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": false,
+                "table_icon": "Table",
+                "table_schema": [
+                  {
+                    "default": "field",
+                    "description": "Specify the name of the output field.",
+                    "display_name": "Name",
+                    "edit_mode": "inline",
+                    "formatter": "text",
+                    "name": "name",
+                    "type": "str"
+                  },
+                  {
+                    "default": "description of field",
+                    "description": "Describe the purpose of the output field.",
+                    "display_name": "Description",
+                    "edit_mode": "popover",
+                    "formatter": "text",
+                    "name": "description",
+                    "type": "str"
+                  },
+                  {
+                    "default": "str",
+                    "description": "Indicate the data type of the output field (e.g., str, int, float, bool, dict).",
+                    "display_name": "Type",
+                    "edit_mode": "inline",
+                    "formatter": "text",
+                    "name": "type",
+                    "options": [
+                      "str",
+                      "int",
+                      "float",
+                      "bool",
+                      "dict"
+                    ],
+                    "type": "str"
+                  },
+                  {
+                    "default": "False",
+                    "description": "Set to True if this output field should be a list of the specified type.",
+                    "display_name": "As List",
+                    "edit_mode": "inline",
+                    "formatter": "text",
+                    "name": "multiple",
+                    "options": [
+                      "True",
+                      "False"
+                    ],
+                    "type": "boolean"
+                  }
+                ],
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "trigger_icon": "Table",
+                "trigger_text": "Open table",
+                "type": "table",
+                "value": [
+                  {
+                    "description": "description of field",
+                    "multiple": "False",
+                    "name": "field",
+                    "type": "str"
+                  }
+                ]
+              },
+              "input_value": {
+                "_input_type": "MessageInput",
+                "advanced": false,
+                "display_name": "Input",
+                "dynamic": false,
+                "info": "",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "is_refresh": false,
+              "metadata": {
+                "_input_type": "DictInput",
+                "advanced": true,
+                "display_name": "Metadata",
+                "dynamic": false,
+                "info": "Metadata to add to the run trace.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "metadata",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "track_in_telemetry": false,
+                "type": "dict",
+                "value": {}
+              },
+              "mirostat": {
+                "_input_type": "DropdownInput",
+                "advanced": true,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Mirostat",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Enable/disable Mirostat sampling for controlling perplexity.",
+                "name": "mirostat",
+                "options": [
+                  "Disabled",
+                  "Mirostat",
+                  "Mirostat 2.0"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "Disabled"
+              },
+              "mirostat_eta": {
+                "_input_type": "FloatInput",
+                "advanced": true,
+                "display_name": "Mirostat Eta",
+                "dynamic": false,
+                "info": "Learning rate for Mirostat algorithm. (Default: 0.1)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "mirostat_eta",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "float",
+                "value": ""
+              },
+              "mirostat_tau": {
+                "_input_type": "FloatInput",
+                "advanced": true,
+                "display_name": "Mirostat Tau",
+                "dynamic": false,
+                "info": "Controls the balance between coherence and diversity of the output. (Default: 5.0)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "mirostat_tau",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "float",
+                "value": ""
+              },
+              "model_name": {
+                "_input_type": "DropdownInput",
+                "advanced": false,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Model Name",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Refer to https://ollama.com/library for more models.",
+                "name": "model_name",
+                "options": [
+                  "phi3:mini"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "refresh_button": true,
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "phi3:mini"
+              },
+              "num_ctx": {
+                "_input_type": "IntInput",
+                "advanced": false,
+                "display_name": "Context Window Size",
+                "dynamic": false,
+                "info": "Size of the context window for generating tokens. (Default: 2048)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "num_ctx",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": 1500
+              },
+              "num_gpu": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Number of GPUs",
+                "dynamic": false,
+                "info": "Number of GPUs to use for computation. (Default: 1 on macOS, 0 to disable)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "num_gpu",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": ""
+              },
+              "num_thread": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Number of Threads",
+                "dynamic": false,
+                "info": "Number of threads to use during computation. (Default: detected for optimal performance)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "num_thread",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": ""
+              },
+              "repeat_last_n": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Repeat Last N",
+                "dynamic": false,
+                "info": "How far back the model looks to prevent repetition. (Default: 64, 0 = disabled, -1 = num_ctx)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "repeat_last_n",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": ""
+              },
+              "repeat_penalty": {
+                "_input_type": "FloatInput",
+                "advanced": true,
+                "display_name": "Repeat Penalty",
+                "dynamic": false,
+                "info": "Penalty for repetitions in generated text. (Default: 1.1)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "repeat_penalty",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "float",
+                "value": ""
+              },
+              "stop_tokens": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Stop Tokens",
+                "dynamic": false,
+                "info": "Comma-separated list of tokens to signal the model to stop generating text.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "stop_tokens",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "stream": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Stream",
+                "dynamic": false,
+                "info": "Stream the response from the model. Streaming works only in Chat.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "stream",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "system": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "System",
+                "dynamic": false,
+                "info": "System to use for generating text.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "system",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "system_message": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "System Message",
+                "dynamic": false,
+                "info": "System message to pass to the model.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "system_message",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "tags": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Tags",
+                "dynamic": false,
+                "info": "Comma-separated list of tags to add to the run trace.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "tags",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "temperature": {
+                "_input_type": "SliderInput",
+                "advanced": false,
+                "display_name": "Temperature",
+                "dynamic": false,
+                "info": "",
+                "max_label": "",
+                "max_label_icon": "",
+                "min_label": "",
+                "min_label_icon": "",
+                "name": "temperature",
+                "override_skip": false,
+                "placeholder": "",
+                "range_spec": {
+                  "max": 1,
+                  "min": 0,
+                  "step": 0.01,
+                  "step_type": "float"
+                },
+                "required": false,
+                "show": true,
+                "slider_buttons": false,
+                "slider_buttons_options": [],
+                "slider_input": false,
+                "title_case": false,
+                "tool_mode": false,
+                "track_in_telemetry": false,
+                "type": "slider",
+                "value": 0.3
+              },
+              "template": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Template",
+                "dynamic": false,
+                "info": "Template to use for generating text.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "template",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "tfs_z": {
+                "_input_type": "FloatInput",
+                "advanced": true,
+                "display_name": "TFS Z",
+                "dynamic": false,
+                "info": "Tail free sampling value. (Default: 1)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "tfs_z",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "float",
+                "value": ""
+              },
+              "timeout": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Timeout",
+                "dynamic": false,
+                "info": "Timeout for the request stream.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "timeout",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": ""
+              },
+              "tool_model_enabled": {
+                "_input_type": "BoolInput",
+                "advanced": false,
+                "display_name": "Tool Model Enabled",
+                "dynamic": false,
+                "info": "Whether to enable tool calling in the model.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "tool_model_enabled",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "top_k": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Top K",
+                "dynamic": false,
+                "info": "Limits token selection to top K. (Default: 40)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "top_k",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": ""
+              },
+              "top_p": {
+                "_input_type": "FloatInput",
+                "advanced": true,
+                "display_name": "Top P",
+                "dynamic": false,
+                "info": "Works together with top-k. (Default: 0.9)",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "top_p",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "float",
+                "value": ""
+              }
+            },
+            "tool_mode": false
+          },
+          "selected_output": "text_output",
+          "showNode": true,
+          "type": "OllamaModel"
+        },
+        "dragging": false,
+        "id": "OllamaModel-9RdU7",
+        "measured": {
+          "height": 707,
+          "width": 320
+        },
+        "position": {
+          "x": 936.9606724510381,
+          "y": 91.27949932735063
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "TextInput-BJLI6",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Get user text inputs.",
+            "display_name": "topic_name",
+            "documentation": "https://docs.langflow.org/text-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value"
+            ],
+            "frozen": false,
+            "icon": "type",
+            "legacy": false,
+            "metadata": {
+              "code_hash": "3d80f125b734",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": "0.2.2"
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.input_output.text.TextInputComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Output Text",
+                "group_outputs": false,
+                "method": "text_response",
+                "name": "text",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.base.io.text import TextComponent\nfrom lfx.io import MultilineInput, Output\nfrom lfx.schema.message import Message\n\n\nclass TextInputComponent(TextComponent):\n    display_name = \"Text Input\"\n    description = \"Get user text inputs.\"\n    documentation: str = \"https://docs.langflow.org/text-input-and-output\"\n    icon = \"type\"\n    name = \"TextInput\"\n\n    inputs = [\n        MultilineInput(\n            name=\"input_value\",\n            display_name=\"Text\",\n            info=\"Text to be passed as input.\",\n        ),\n    ]\n    outputs = [\n        Output(display_name=\"Output Text\", name=\"text\", method=\"text_response\"),\n    ]\n\n    def text_response(self) -> Message:\n        return Message(\n            text=self.input_value,\n        )\n"
+              },
+              "input_value": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "Text",
+                "dynamic": false,
+                "info": "Text to be passed as input.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "TextInput"
+        },
+        "dragging": false,
+        "id": "TextInput-BJLI6",
+        "measured": {
+          "height": 203,
+          "width": 320
+        },
+        "position": {
+          "x": 49.88786964647488,
+          "y": 403.7233423984594
+        },
+        "selected": false,
+        "type": "genericNode"
+      }
+    ],
+    "viewport": {
+      "x": 23.55743758327344,
+      "y": 96.00885268701927,
+      "zoom": 0.7104444961848754
+    }
+  },
+  "description": "Innovation in Interaction, Revolution in Revenue.",
+  "endpoint_name": null,
+  "id": "cdf0dc55-2c7a-4354-b768-13a723c0cdcb",
+  "is_component": false,
+  "last_tested_version": "1.7.3",
+  "name": "describe_topic",
+  "tags": []
+}

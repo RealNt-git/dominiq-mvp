@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from app.services import llm_orchestrator
 from app.database import engine, init_db, SessionLocal
 from app import models
 from app.api import auth, content, learning, gamification, ai_assistant, plan
@@ -71,6 +72,11 @@ finally:
 
 # Создаём приложение FastAPI
 app = FastAPI(title="Dominiq MVP", version="1.0.0")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await llm_orchestrator.close_clients()
+    # Если есть другие клиенты, тоже закрыть
 
 # === Инициализация метрик Prometheus ===
 instrumentator = Instrumentator(

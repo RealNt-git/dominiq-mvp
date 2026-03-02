@@ -38,3 +38,17 @@ llm_request_duration_seconds = Histogram(
     ['model'],
     buckets=[0.1, 0.5, 1, 2, 5, 10, 30, 60, 120]
 )
+
+# Новые метрики для Langflow
+langflow_requests_total = Counter(
+    'langflow_requests_total',
+    'Total number of Langflow requests',
+    ['flow_id', 'status']  # status: success, error
+)
+
+langflow_request_duration_seconds = Histogram(
+    'langflow_request_duration_seconds',
+    'Langflow request duration in seconds',
+    ['flow_id'],
+    buckets=[0.1, 0.5, 1, 2, 5, 10, 30, 60, 120]
+)

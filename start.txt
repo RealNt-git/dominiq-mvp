@@ -1,5 +1,51 @@
+Загрузить локальную модель ollama 
+docker exec -it dominiq-ollama ollama pull phi3:mini
+
+Для использоватья ollama 
+docker-compose.yml 
+  backend:
+  environment:
+    - USE_LANGFLOW=false
+
+Для использования локального langflow
+docker-compose.yml 
+  backend:
+  environment:
+    - USE_LANGFLOW=true
+
+
+Запуск
 cd C:\Dominiq\dominiq-mvp
 docker compose up -d --build
+
+Остановка
+docker compose down
+
+Перезапуск
+docker restart dominiq-backend
+docker restart dominiq-frontend
+
+Логи
+docker-compose logs --tail 50 backend
+
+Удаление данных из БД кроме аккаунтов
+Под логином со словом admin, например, tyankis@admin, Кабинет методиста - Управление БД
+
+Ссылки
+Приложение http://localhost:5173/dashboard
+swagger http://localhost:8000/docs
+elastic http://localhost:5601/app/discover
+Grafana http://localhost:3000/d/dominiq-llm-dashboard/dominiq-llm-dashboard 
+     каждый дашборд нужно запустить: три точки - edit - run querries
+метрики http://localhost:8000/metrics
+sAdvisor http://localhost:8080/containers/
+Prometheus http://localhost:9090/alerts
+elasticsearch http://localhost:9200/
+локальный langflow http://localhost:7860/flows
+
+
+
+Остальные команды (для внутреннего пользования):
 
 docker compose down
 docker compose up -d --build

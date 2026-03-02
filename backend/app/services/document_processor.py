@@ -1,7 +1,6 @@
 # backend/app/services/document_processor.py
 # Модуль обработки документов с подробнейшим логированием (включая структурированные логи для Kibana)
-# Исправлено: корректное логирование исключений (exc_info передаётся отдельно, не в extra)
-# Улучшена обработка JSON-ответов от LLM при генерации вопросов
+# Исправлено: удалены прямые вызовы LLMClient, всё через оркестратор
 
 import os
 import re
@@ -12,7 +11,7 @@ from typing import List, Dict, Any, Optional
 
 from sqlalchemy.orm import Session
 
-from app.services.llm_client import LLMClient
+from app.services import llm_orchestrator  # оркестратор для всех LLM-вызовов
 from app.services.term_extractor import extract_candidates
 from app.database import SessionLocal
 from app import models
@@ -23,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 2000
 CHUNK_OVERLAP = 200
-MAX_CANDIDATES = 10
+MAX_CANDIDATES = 30
 
 async def process_document(file_path: str, domain: str, original_filename: str, topic_id: int) -> int:
     start_time = time.time()
@@ -88,7 +87,7 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
     finally:
         db.close()
 
-    # 3. Разбиение на чанки
+    # 3. Разбиение на чанки (не используется напрямую, но оставим для логов)
     chunk_start = time.time()
     chunks = _split_into_chunks(full_text, CHUNK_SIZE, CHUNK_OVERLAP)
     logger.info("Document split into chunks", extra={
@@ -108,63 +107,85 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
         "duration_sec": round(time.time() - extract_start, 3)
     })
 
-    # 5. Инициализация LLM клиента
-    llm = LLMClient()
-    logger.info("LLM client initialized", extra={
-        "action": "process_document",
-        "document_id": doc_id
-    })
-
-    # 6. Верификация кандидатов
+    # 5. Верификация кандидатов
     approved_terms = []
     verification_start = time.time()
-    try:
-        for idx, cand in enumerate(candidates, 1):
-            cand_start = time.time()
-            logger.info("Processing candidate", extra={
+
+    for idx, cand in enumerate(candidates, 1):
+        cand_start = time.time()
+        logger.info("Processing candidate", extra={
+            "action": "verify_candidate",
+            "document_id": doc_id,
+            "candidate_index": idx,
+            "candidate_text": cand,
+            "event": "start"
+        })
+        context = _find_context(full_text, cand)
+        if not context:
+            logger.debug("No context found for candidate", extra={
                 "action": "verify_candidate",
                 "document_id": doc_id,
-                "candidate_index": idx,
-                "candidate_text": cand,
-                "event": "start"
+                "candidate": cand
             })
-            context = _find_context(full_text, cand)
-            if not context:
-                logger.debug("No context found for candidate", extra={
-                    "action": "verify_candidate",
-                    "document_id": doc_id,
-                    "candidate": cand
-                })
-                continue
-            term_data = await _verify_term(llm, cand, context, domain, doc_id)
-            if term_data:
-                term_data["context"] = context
-                term_data["document_id"] = doc_id
-                approved_terms.append(term_data)
-                logger.info("Candidate approved", extra={
-                    "action": "verify_candidate",
-                    "document_id": doc_id,
-                    "candidate": cand,
-                    "duration_sec": round(time.time() - cand_start, 3),
-                    "event": "approved"
-                })
-            else:
-                logger.info("Candidate rejected", extra={
-                    "action": "verify_candidate",
-                    "document_id": doc_id,
-                    "candidate": cand,
-                    "duration_sec": round(time.time() - cand_start, 3),
-                    "event": "rejected"
-                })
-        logger.info("Verification completed", extra={
-            "action": "process_document",
-            "document_id": doc_id,
-            "approved_count": len(approved_terms),
-            "total_candidates": len(candidates),
-            "duration_sec": round(time.time() - verification_start, 3)
-        })
+            continue
 
-        # 7. Сохранение черновиков
+        try:
+            response = await llm_orchestrator.verify_term(cand, context, domain)
+            # Парсим JSON
+            start_idx = response.find('{')
+            end_idx = response.rfind('}') + 1
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = response[start_idx:end_idx]
+                data = json.loads(json_str)
+                if data.get("is_term"):
+                    term_data = {
+                        "term": cand,
+                        "definition": data.get("definition", ""),
+                        "example": data.get("example", ""),
+                        "context": context,
+                        "document_id": doc_id
+                    }
+                    approved_terms.append(term_data)
+                    logger.info("Candidate approved", extra={
+                        "action": "verify_candidate",
+                        "document_id": doc_id,
+                        "candidate": cand,
+                        "duration_sec": round(time.time() - cand_start, 3),
+                        "event": "approved"
+                    })
+                else:
+                    logger.info("Candidate rejected", extra={
+                        "action": "verify_candidate",
+                        "document_id": doc_id,
+                        "candidate": cand,
+                        "duration_sec": round(time.time() - cand_start, 3),
+                        "event": "rejected"
+                    })
+            else:
+                logger.warning("Could not parse JSON from LLM response", extra={
+                    "action": "verify_candidate",
+                    "document_id": doc_id,
+                    "candidate": cand,
+                    "response_preview": response[:200]
+                })
+        except Exception as e:
+            logger.error(f"Error verifying term: {e}", exc_info=True, extra={
+                "action": "verify_candidate",
+                "document_id": doc_id,
+                "candidate": cand
+            })
+            # продолжаем со следующим кандидатом
+
+    logger.info("Verification completed", extra={
+        "action": "process_document",
+        "document_id": doc_id,
+        "approved_count": len(approved_terms),
+        "total_candidates": len(candidates),
+        "duration_sec": round(time.time() - verification_start, 3)
+    })
+
+    # 6. Сохранение черновиков и генерация доп. материалов
+    if approved_terms:
         db = SessionLocal()
         try:
             for term_info in approved_terms:
@@ -185,8 +206,8 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
                     "term": term_info["term"]
                 })
 
-                # 8. Генерация дополнительных материалов
-                await _generate_additional_materials(llm, term_info, draft_term.id, doc_id, db)
+                # Генерация дополнительных материалов (мнемоника, вопросы)
+                await _generate_additional_materials(term_info, draft_term.id, doc_id, db)
 
             db.commit()
             logger.info("Drafts saved", extra={
@@ -204,10 +225,13 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
             raise
         finally:
             db.close()
-    finally:
-        await llm.close()
+    else:
+        logger.info("No approved terms, skipping draft creation", extra={
+            "action": "process_document",
+            "document_id": doc_id
+        })
 
-    # 9. Помечаем документ как обработанный
+    # 7. Помечаем документ как обработанный
     db = SessionLocal()
     try:
         doc = db.query(models.Document).filter(models.Document.id == doc_id).first()
@@ -239,6 +263,8 @@ async def process_document(file_path: str, domain: str, original_filename: str, 
     document_processing_duration_seconds.observe(total_time)
     return doc_id
 
+
+# ---------- Вспомогательные функции ----------
 
 def _split_into_chunks(text: str, chunk_size: int, overlap: int) -> List[str]:
     chunks = []
@@ -278,80 +304,19 @@ def _find_context(text: str, term: str) -> Optional[str]:
     return None
 
 
-async def _verify_term(llm: LLMClient, candidate: str, context: str, domain: str, doc_id: int) -> Optional[Dict[str, Any]]:
-    prompt = f"""
-Является ли фраза "{candidate}" термином в области {domain}? Если да, найди в следующем контексте определение и пример использования.
-Ответь строго в формате JSON с полями:
-- is_term (bool)
-- definition (str, если есть, иначе пустая строка)
-- example (str, если есть, иначе пустая строка)
-
-Контекст: "{context}"
-"""
-    try:
-        response = await llm.generate(prompt, max_tokens=300, temperature=0.1)
-        logger.info("LLM response received for verification", extra={
-            "action": "_verify_term",
-            "document_id": doc_id,
-            "candidate": candidate,
-            "response_length": len(response)
-        })
-        start = response.find('{')
-        end = response.rfind('}') + 1
-        if start != -1 and end > start:
-            json_str = response[start:end]
-            data = json.loads(json_str)
-            if data.get("is_term"):
-                logger.info("Term verified by LLM", extra={
-                    "action": "_verify_term",
-                    "document_id": doc_id,
-                    "candidate": candidate,
-                    "has_definition": bool(data.get("definition")),
-                    "has_example": bool(data.get("example"))
-                })
-                return {
-                    "term": candidate,
-                    "definition": data.get("definition", ""),
-                    "example": data.get("example", "")
-                }
-            else:
-                logger.info("Term rejected by LLM", extra={
-                    "action": "_verify_term",
-                    "document_id": doc_id,
-                    "candidate": candidate
-                })
-                return None
-        else:
-            logger.warning("Could not parse JSON from LLM response", extra={
-                "action": "_verify_term",
-                "document_id": doc_id,
-                "candidate": candidate,
-                "response_preview": response[:200]
-            })
-            return None
-    except Exception as e:
-        logger.error("Error verifying term with LLM", exc_info=True, extra={
-            "action": "_verify_term",
-            "document_id": doc_id,
-            "candidate": candidate,
-            "error": str(e)
-        })
-        return None
-
-
 async def _generate_additional_materials(
-    llm: LLMClient,
     term_info: Dict[str, Any],
     draft_term_id: int,
     document_id: int,
     db: Session
 ) -> None:
+    """Генерирует мнемонику и вопросы для термина через оркестратор."""
     term = term_info["term"]
     definition = term_info.get("definition", "")
     example = term_info.get("example", "")
 
     logger.info("Generating additional materials for term", extra={
-        "action": "_generate_additional_materials",
+        "action": "generate_additional_materials",
         "document_id": document_id,
         "draft_term_id": draft_term_id,
         "term": term,
@@ -359,14 +324,13 @@ async def _generate_additional_materials(
     })
 
     # Мнемоника
-    prompt_mnemonic = f"Придумай короткую мнемоническую фразу для запоминания термина '{term}' (определение: {definition}). Фраза должна быть на русском языке. Ответ дай одной строкой, без пояснений."
     try:
-        mnemonic = await llm.generate(prompt_mnemonic, max_tokens=50, temperature=0.5)
+        mnemonic = await llm_orchestrator.generate_mnemonic(term, definition)
         draft_term = db.query(models.DraftTerm).filter(models.DraftTerm.id == draft_term_id).first()
         if draft_term:
             draft_term.mnemonic = mnemonic
             logger.info("Mnemonic generated", extra={
-                "action": "_generate_additional_materials",
+                "action": "generate_additional_materials",
                 "document_id": document_id,
                 "draft_term_id": draft_term_id,
                 "term": term,
@@ -374,13 +338,13 @@ async def _generate_additional_materials(
             })
         else:
             logger.warning("Draft term not found for mnemonic", extra={
-                "action": "_generate_additional_materials",
+                "action": "generate_additional_materials",
                 "document_id": document_id,
                 "draft_term_id": draft_term_id
             })
     except Exception as e:
         logger.error("Failed to generate mnemonic", exc_info=True, extra={
-            "action": "_generate_additional_materials",
+            "action": "generate_additional_materials",
             "document_id": document_id,
             "draft_term_id": draft_term_id,
             "term": term,
@@ -388,65 +352,39 @@ async def _generate_additional_materials(
         })
 
     # Вопросы
-    prompt_quiz = f"""
-Составь 2 вопроса с вариантами ответов (по 4 варианта) для проверки знания термина '{term}'.
-Все тексты должны быть на русском языке (вопрос, варианты ответов, пояснение).
-Определение: {definition}
-Пример: {example}
-Для каждого вопроса укажи правильный вариант (индекс 0-3).
-Верни строго JSON-массив из 2 объектов с полями:
-- question (str)
-- options (list of 4 str)
-- correct (int) - индекс правильного ответа
-- explanation (str, пояснение, почему ответ правильный)
-"""
     try:
-        response = await llm.generate(prompt_quiz, max_tokens=800, temperature=0.3)
+        response = await llm_orchestrator.generate_questions(term, definition, example)
 
-        # Попытка извлечь JSON массив
+        # Парсинг JSON-массива
         start = response.find('[')
         end = response.rfind(']') + 1
         questions = None
-        json_str = None
-
         if start != -1 and end > start:
-            json_str = response[start:end]
             try:
-                questions = json.loads(json_str)
+                questions = json.loads(response[start:end])
             except json.JSONDecodeError:
-                # Если не удалось, возможно внутри есть лишний текст
-                logger.warning("Failed to parse JSON array, trying to find object", extra={
+                logger.warning("Failed to parse JSON array", extra={
+                    "action": "generate_additional_materials",
+                    "document_id": document_id,
+                    "draft_term_id": draft_term_id,
                     "term": term,
                     "response_preview": response[:200]
                 })
 
-        # Если массив не найден или не распарсился, пробуем найти одиночный объект
+        # Если не массив, пробуем одиночный объект
         if questions is None:
             start_obj = response.find('{')
             end_obj = response.rfind('}') + 1
             if start_obj != -1 and end_obj > start_obj:
-                json_str = response[start_obj:end_obj]
                 try:
-                    single_q = json.loads(json_str)
+                    single_q = json.loads(response[start_obj:end_obj])
                     if isinstance(single_q, dict) and all(k in single_q for k in ("question", "options", "correct")):
                         questions = [single_q]
                         logger.info("Parsed single question object", extra={"term": term})
-                    else:
-                        logger.warning("JSON object is not a valid question", extra={"term": term})
                 except json.JSONDecodeError:
                     logger.warning("Failed to parse JSON object", extra={"term": term})
 
-        if questions is None:
-            logger.warning("Could not find JSON array or object in quiz response", extra={
-                "action": "_generate_additional_materials",
-                "document_id": document_id,
-                "draft_term_id": draft_term_id,
-                "term": term,
-                "response_preview": response[:200]
-            })
-            return
-
-        if isinstance(questions, list):
+        if questions and isinstance(questions, list):
             question_count = 0
             for q in questions:
                 if all(k in q for k in ("question", "options", "correct")):
@@ -461,24 +399,23 @@ async def _generate_additional_materials(
                     )
                     db.add(draft_quiz)
                     question_count += 1
-            logger.info("Quiz questions generated", extra={
-                "action": "_generate_additional_materials",
+            logger.info(f"Generated {question_count} quiz questions", extra={
+                "action": "generate_additional_materials",
                 "document_id": document_id,
                 "draft_term_id": draft_term_id,
                 "term": term,
                 "questions_count": question_count
             })
         else:
-            logger.warning("Quiz response is not a list", extra={
-                "action": "_generate_additional_materials",
+            logger.warning("Could not parse questions", extra={
+                "action": "generate_additional_materials",
                 "document_id": document_id,
                 "draft_term_id": draft_term_id,
-                "term": term,
-                "response_preview": response[:200]
+                "term": term
             })
     except Exception as e:
         logger.error("Failed to generate quiz", exc_info=True, extra={
-            "action": "_generate_additional_materials",
+            "action": "generate_additional_materials",
             "document_id": document_id,
             "draft_term_id": draft_term_id,
             "term": term,

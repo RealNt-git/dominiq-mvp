@@ -12,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d      
     restart: unless-stopped
     networks:
       - dominiq-net
@@ -34,16 +35,25 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - USE_LANGFLOW=false  # false - используется ollama загрузка базы docker exec -it dominiq-ollama ollama pull phi3:mini или true, если хотите использовать Langflow
       - DATABASE_URL=postgresql://dominiq:dominiq@postgres:5432/dominiq
       - OLLAMA_BASE_URL=http://ollama:11434
       - LLM_MODEL=phi3:mini
       - MAX_TOKENS=2048
       - TEMPERATURE=0.3
+      - LANGFLOW_API_URL=http://langflow:7860/api/v1
+      - LANGFLOW_FLOW_VERIFY_TERM=25e545a4-915c-4fed-8ca1-f49f4d49e2dd
+      - LANGFLOW_FLOW_GENERATE_MNEMONIC=9310d119-a3a6-4d16-bd8c-075d00046fee
+      - LANGFLOW_FLOW_GENERATE_QUESTIONS=1bc67239-4ff6-449f-b0dd-deebd2fece29
+      - LANGFLOW_FLOW_SUGGEST_TOPICS=7de3655a-6996-4305-80f3-5aa6033d69c2
+      - LANGFLOW_FLOW_GENERATE_TOPIC_CONTENT=3c6e1d7f-3af9-4c3c-a6bf-e5ce05d76c06
+      - LANGFLOW_FLOW_DESCRIBE_TOPIC=cdf0dc55-2c7a-4354-b768-13a723c0cdcb
     volumes:
       - ./backend:/app
     depends_on:
       - postgres
       - ollama
+      - langflow
     restart: unless-stopped
     networks:
       - dominiq-net
@@ -153,12 +163,33 @@ services:
       - dominiq-net
     privileged: true
 
+  langflow:
+      image: langflowai/langflow:latest
+      container_name: langflow
+      depends_on:
+        - postgres
+      environment:
+        - LANGFLOW_DATABASE_URL=postgresql://dominiq:dominiq@postgres:5432/langflow?sslmode=disable
+        - LANGFLOW_CONFIG_DIR=/app/langflow-config  # для хранения конфигов
+        - LANGFLOW_AUTO_LOGIN=true                  # для удобства разработки
+        - LANGFLOW_SKIP_AUTH_AUTO_LOGIN=true   # <-- добавьте эту строку
+        - LANGFLOW_AUTH_DISABLED=true
+      ports:
+        - "7860:7860"  # стандартный порт Langflow UI
+      volumes:
+        - langflow_data:/app/langflow-config        # том для сохранения конфигураций
+      networks:
+        - dominiq-net
+      user: "1000:1000"  
+      restart: unless-stopped
+
 volumes:
   postgres_data:
   ollama_data:
   prometheus_data:
   grafana_data:
   elasticsearch_data:
+  langflow_data:
 
 networks:
   dominiq-net:
