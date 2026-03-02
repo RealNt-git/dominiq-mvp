@@ -18,21 +18,22 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 # Список таблиц в порядке удаления (сначала зависимые)
 # Исправлено: user_progress перемещён выше terms
 TABLES_IN_ORDER = [
-    "draft_quizzes",
-    "draft_terms",
-    "documents",
-    "processing_progress",
-    "questions",
-    "quizzes",
-    "flashcards",
-    "user_progress",           # теперь удаляется до terms
-    "user_achievements",
+    "draft_quizzes",          # зависит от documents
+    "draft_terms",             # зависит от documents
+    "documents",               # зависит от topics
+    "processing_progress",     # зависит от documents
+    "questions",               # зависит от quizzes, terms
+    "user_progress",           # зависит от users, terms, quizzes (теперь ДО quizzes)
+    "flashcards",              # зависит от terms
+    "user_achievements",       # зависит от users, achievements
+    "user_topic_plans",        # зависит от users, topics, grades
+    "quizzes",                 # зависит от topics (удаляется ПОСЛЕ user_progress)
+    "terms",                   # зависит от domains, topics
     "achievements",
-    "terms",                    # удаляется после user_progress и questions
-    "user_topic_plans",
+    "topics",                  # зависит от domains
     "grades",
-    "topics",
     "domains",
+    "topic_generation_sessions", # добавлено для полноты очистки
     "test_runs",
 ]
 
